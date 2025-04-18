@@ -1,0 +1,269 @@
+Russell Stewart 0:00
+So can we? Can we? Does that make sense if we just sort of almost joined forces on this, I guess, and just something we've got no particular tooling or anything in mind, it's more just to sort of present back and yeah, and see, and the guys have got, I guess, closest University in this sort of tools, probably some of the biggest experts we've got inside the bank on these sort of things. So yeah, if that makes sense, to sort of join up, and you think this could be a good candidate, then,
+
+Unknown 0:27
+sorry.
+
+Russell Stewart 0:30
+I mean, we can. We can certainly, because we want to cover both parts of it as well. We definitely want to cover the workflow and the tooling. And we talked about, you know, that that piece, which you know is, is not something that requires AI around but
+
+Gavin Slater 0:44
+on the tooling front, are we? I guess there was been this discussion previously around generic workflow tools, right? Because, yes, you can go and build something very bespoke, yes, and you can put a workflow around it, yeah. But there's also generic workflow tools that are available and can be configured to do workflows. And so is there kind of a, is that something you're also exploring from an IT perspective? I know Scott and Jonathan the final outcome, but yeah, there's a there's also a sense of, do we go build something bespoke ourselves, which is often expensive and takes a long time? And yeah, it's always more expensive than you think, versus using something that's kind of out of the box comes with workflow associated with it. So I don't know if you guys
+
+Russell Stewart 1:42
+thought around that. So, so the position we've got the most, I guess this, I guess part of trying to understand this in a little bit more detail is that we don't, we don't miss something on the detailed side, which could impact the answer that question. But to answer the question, it, do not have a generic workflow tool that's currently sort of in place for the bank, we've got lots of workflow, depending on how invert commas. You could say workflow, you could pay limit management or something, you know, you could have built into lots of other other bespoke systems, but tools like, say, JIRA or churl event, you've got workflow built into them. But we do not have a generic workflow solution. What we tended to build our kind of lighter, you know, Microsoft stack.net, sort of it, database, workflow type tool to solve that problem. So what I was wanting to do here is almost, sort of say, look, we've got this seems to fit into a very, I don't say, generic workflow problem, but it there is from, from the first understanding of the business case, it doesn't feel like there's anything too specialized you'd need in terms of tooling. Now maybe we get that wrong when we get into the detail. When we did this with yields, that the yields view, when we looked at it for that risk solution, was there was quite a lot of IP in their solution, and the way they their data model, and all those types of things, wasn't
+
+Gavin Slater 2:57
+the latest software. Was it generic website or tool? The fact that maybe this does exactly that's what we should find out, the
+
+Russell Stewart 3:03
+fact that we've got a sort of word form and a process that's going over email lens, it says that sort of process. I think this is perfect for it. So yes, I guess kind of, I think the proposal is to say, hey, look, I think there's something really interesting we could do here. Here's a really good business case and opportunity for doing it. Why not? And yeah, I think that's kind of on a position. But we just want to make sure there's nothing we're missing. There's nothing we're missing that, you know, we'd have to interact with four or five other systems and plumb into anything that we've we've kind of missed in the detail. So I guess, I guess that's it. And I guess for an enterprise architectural Xiaomin to sort of see that, they'll probably want us to have done that sort of level of diligence, and we've not just done a skim of a thing and say, Oh, this feels like a workflow tool. So, yeah, I guess, I guess that's where we're at, but we've got something to present back to, sort of over the next couple of weeks. And I think, like I said, I think chaven south for a couple of weeks, but, yeah, we'll get in her diary as well as soon as she's back to just sort of say, look, here's where we've got to. But that's kind of our thing. So
+
+Unknown 3:56
+is that, is that sort of one of these architecture
+
+Russell Stewart 4:00
+Yeah, but I guess both. I guess both. So, so if we're seeing, because that's the question I'm seeing, this is sitting in risk, is that right? Although it goes between risk and the front office, it's a, it's a risk tool. So, yeah, I guess, I guess he would have both. So in order to build this for you, Scott, he'd have to build it in something. But yeah, the Enterprise Architecture hat would say, you know, what would be the recommended tool to use? I guess,
+
+Scott Carey 4:25
+because, I mean, obviously, that's why we got paused, is because it was deemed necessary for architecture, which is purchases, that banks policy to determine, I suppose to Gavin question, what is the platform? And they just have so much going on that we just got pushed up to now, basically. So, yeah, I'm just, I suppose it just gets back. I mean, I suppose Gavin's right from a business perspective, I credit, you know, as long as we get something that's, you know, effective and appropriate, and if we can build the AI, that's all very well but, but I hope we don't spend months and months and months and months deliberating around internal versus vendor, versus combination versus Yeah, I mean, because, you know, we raised this last year, and you know, there's been a lot of talk and including with crystal, who Philip suggested that we speak to but, you know, at the end of the day, we've not really got anywhere with us, and we're sort of, I don't know,
+
+Gavin Slater 5:28
+can we be agile? Can we iterate? Can we just prototype iterate? But I
+
+Russell Stewart 5:34
+think, I think what I want to quickly, what I want to put back on the table as a sort of, sort of elevator pitch, because it came up with both Jamin and Pam probably, I don't know, a month and a half ago when it was kind of re raised again. And you know, you want to say, look, we can do this in a host of things, but in order to do something, we've just got to pick and from you guys perspective, I guess maybe Gavin, you might have a slight more interest in the technology, but effectively, you'd say, Fine, if you want to build it yourself, if you want to do something else, then fine. Just, we just need to get going. Need to get going. So I think I want to play back and say, Look, we can build, we could solve this problem in four or five ways. We just got to pitch which way we think is suitable, and then go with it. So yeah, I think, yeah, oh, noted on the sort of get caught up in sort of governance and doing anything and things like that. So yeah, we'll, we'll agree on a solution, and then, and then sort of plow forward. Yeah? So apologies. It took, took this time to make the progress.
+
+Gavin Slater 6:28
+Okay, so today's session kind of to find out the workflow,
+
+Russell Stewart 6:32
+yeah? So I guess, I guess the the new faces, just to understand the process from a slightly higher level. But then, and then we can just maybe just look at it and start to get into some, some details. And then our, our thing was, we play it back to you guys, make sure we've understood it correctly, and then, and then we present back and say, Look, you know, here's what we think we could do, and approach to doing it, and things.
+
+Scott Carey 6:52
+So Jonah, we came up with a process,
+
+Jonathan Holmes 6:56
+yeah, soon we Yes, I've got the map here, and I've pulled some examples documents of the different forms that I can maybe just briefly, briefly talk. So what we're talking about here is basically when front office, the originators of the bank, want to request new limits, credit limits to a client, so to a new client or an existing client. So we may have some limits at the moment, that they want to be bigger, or it's a new client, and they want to do a new type of transaction, and they're requesting and credit them in from us. So basically, the process at a high level at the moment is that there are lots of different inputs from various departments, like legal, front office and whoever and all these inputs come to credit. Credit do some analysis. We create a document which is called a credit paper, and then that's submitted for approval. So it's either submitted to a number of individuals for approval, or if the limit is a large request, or the client is particularly risky, it goes to credit committee for approval, and then when it's approved, then you basically the end output of all of this is that you have a PDF, which is the combination of all these different teams work, the credit analysis itself, and then the approval. So it'll be an email from an individual approving a transaction or a limit, or it'll be a minute from a credit committee. So it'll be a half page, or one page minute, which basically summarizes the view of the committee, is we approve these limits, and then we, we go ahead and we, you know, change the limits in the system and things like that, which would be separate to this, this project
+
+Russell Stewart 8:42
+and the system for the limits, just my knowledge is adaptive, yeah. So that
+
+Jonathan Holmes 8:47
+wouldn't be separate from this, yes. So the problem statement, I guess, is that at the early stage, so before credit gets into the weeds of doing our analysis, there is, there is different input that is required from various areas. And ultimately, what tends to happen is people don't know where it is at any point in time. So, you know, the thing that kicked this off was Alban noticed, I think, the beginning of last year, that request was due or was stuck, and he realized it was with him, basically to provide some sort of support to the transaction proceeding before it goes through the next sort of hoops. So the idea of is, this is, as well as having sort of digitalizing the inputs of these different departments, there would be an overall sort of tracking page, or status page, if you like, which had timestamps on it, and a sort of person who is, who is assigned to, you know, where it's sitting with any point in the workflow. So just to a very high level, when I refer back to this is what Scott was referring to. How do I show content from the screen? It's gonna work. Everyone sees that. Yeah, fine. So this is the sort of workflow diagram which Alvin and I came up with, which is basically so at the end, on the right hand side, is your final PDF document post approval. And then on the left is the beginning of that. So first of all, front office will send us a document which highlight, outlines what the limit request is, who the client is, what the expected revenue, and there are a number of inputs, like the return on risk weighted assets, which is important for our sort of risk return assessment. The KYC status. Have they just had the first meeting with the client yesterday, or has it gone through the KYC process? Where are we there the level of confidentiality, if it's a private side deal and it's MMPI, then there are additional controls around that, and some various other points. Then it moves on into so then credit would basically say, at what level would this deal be approved? Would it be a committee, or would it be an individual? And then we have this additional questionnaire, which we call a credit questionnaire, which is basically a document asking for extra due diligence from the relationship manager, who has to ask or has to gain some answers and complete this questionnaire. So basically, before I go through this, maybe I'll refer to each one as we go. So firstly, that first box is the credit question. So it is the limit request. So this is the document which normally is completed
+
+Russell Stewart 11:56
+a quick question on so if we had a new client being onboarded as part of the sort of KYC process. Do they get credit limit anyway? Is this? Is this almost like a front office request for an adjustment to a transaction level or or, do you have credit limits as part of that sort of original KYC process anyway? No.
+
+Jonathan Holmes 12:14
+So once things are KYC, then it would always come to us okay to put in any limit. So, I mean, we can maybe clarify the scope of this project and what we want to use it for, yeah, at some point. Because I think the intention is,
+
+Scott Carey 12:30
+it's a good question and and basically the KYC compliance process, the credit process and probably the legal documentation process are generally running in parallel. Yeah, that makes sense. So this is the one say swim lane, if you want to call it that. And I mean, obviously, if they're worried about KYC, they might, you know, go go through that first. And it's just think about all three of those things could be happening at the same time and under a different process. And
+
+Gavin Slater 13:02
+I'm guessing ops guys have their own workflow either either they have a solution or they don't have a solution. But there's a a workflow associated with that. Okay,
+
+Jonathan Holmes 13:14
+okay, so this is the first document that we the front office basically complete when they come to us and they they want to request a limit. So you can see here, this is a new client template, yes. So this is dv trading, an American company. They provided the SIF number. They're saying the different in the first table here the second they were the limits that they're requesting. Then on two thirds, we're down here. On the first page, is the revenue that they expect to get from the client over the next 12 months, comments on the limits required, what they're going to be doing, the products that will be traded, the volumes. And then on the second page, we've got whether or not they've checked if there is country limit available to because, you know, credit limits are a subset of basically country limit. You have to have the overall country limit. So this is just a check box of have They considered that? Then relationship comments like, who they've met, who do they know? How is the client introduced, some just useful background information before we start the credit process. If it was KYC approved, yes or no. So to Scott's point, is that happening in parallel, or has that already been done? And then, likewise, with the legal documentation, sometimes that can just be right? You know, it can be completed as under negotiation currently, or something like that, whereas in this case, they're saying that we have an is the CSA already signed, whether or not we have a positive legal opinion on those documentation, the level of financial disclosure, and then importantly for us, which is Not particularly effective through this form is the prioritization. So who you know, how urgent is this request, and then who has sponsored it from the front office. So we have a concept where, by every credit limit request needs a sponsorship from the front office. So and that depends on, ultimately, on the authority of who's approving the limit request. So if it's just for simplicity, if it's going to da to credit committee for approval, then, and if it's originated in fic, then Steven gargilio needs to have provided his sponsorship, not saying he's immediately happy with everything, but at least saying he's happy at this stage for it to progress and for more work to be done. So this is the first form that gets filled out. Okay, so on on this template. This is this first box here then so credit will then look at the request and say and say are the criteria for a credit questionnaire met or not met? So this is the recently introduced additional due diligence that is required, required to be completed by the relationship manager on on individual clients. So it would be, there would be some logic, as we don't need to go through it now, but there's like, three or four criteria. If those are met, then this additional due diligence needs to be done by by the relationship manager. And that looks like this. So,
+
+Russell Stewart 16:35
+and even though not going into the logic, would you, would you say it needs a human being to kind of ultimately make the call. Does it for a rule book could be,
+
+Jonathan Holmes 16:44
+I think it probably needs so on this, we've put it as credit input, so I think it would, once this form has been completed, it would then come to credit, and we would basically determine if the criteria are met, because it involves looking up some tables so it's got, like, clag, or knowing if the client is listed or it's got a credit rating. I mean, you could probably automate it one day. But just for simplicity, we would probably just say, is this required? Yes or No. If we say yes, then this is sent to the person who raised the request, basically. So it's the same one.
+
+Grad1 17:22
+Sorry, quick one here. Yeah, the credit analysis is purely based on this. The question there that was used as the Go to Reference to assess any risk, or do we have any out of the input? Yeah,
+
+Jonathan Holmes 17:34
+so, so the credit analysis is done separately, and we'll use this additional answers that we get from, you know, as from the relationship manager as additional input. But there are other sources of information we we assess, like, you know, audited financial statements, things like that. So, so this is the, this is the additional due diligence template. This one has been filled out quite substantially, so it rolls over to four pages. But when you see the template on its own, it's just, I think, two pages. But the idea would be that in this system, each of these questions on the left, so the answers are on the right, the questions are on the left, so all of the questions on the left would hopefully be fields, just simple free text fields in a system. Okay? So once after that is done, where are we now? So then that's been completed. So they've sent us the limit request. We've said that the additional questionnaire is required. They've completed that. And then we've also input the DA level. So that's the level of which the approval is required. So if it's an individual or credit committee, we have a scale which is da one down to da eight. So just be assigned a number on a scale.
+
+Gavin Slater 18:53
+And that's, again, quite defined, yeah, that's
+
+Jonathan Holmes 18:58
+yeah, again, that's probably, again, in this second box here probably something for credit to input, because also there's a level of subjectivity to it where deals can get escalated outside of the logic. We can just decide that we think this is complicated as going to credit committee, so we're putting it as one. So then, based on that, then there would be some sort of grid logic embedded in the system. Whereas, if it's da one, it needs Mr. Gin support, or if it's da two, it needs Steven support. If it originates from fic, if it's da two and originates from commodities, it would be cat who needs to support it. So it would be a simple grid. Look up here, and then it goes to that then I envisage that this then being sent to that person and say, you know, you've just received a new deal or limit request that requires your sponsorship. And they'd be able to see the limit request, you know, the original details sent by the account executive. And the next part, whatever. And then, typically, what we get is usually quite simple. So this is an example of a business sponsorship. This is a request that credit, or it's usually sent from credit or front office, is sent to, in this case, Steven garjulier, and he's just said, you know, I've discussed it with the team. I'm happy to continue basically. So it would just be fairly simple free text again, on that on that side. So I just paused there before launching into the next part.
+
+Scott Carey 20:31
+But thanks, I'm going to drop off. And there's one observation now that you guys are sort of seeing the practicalities to this, and it's sort of been in the back of my mind, is how this would actually work and look and I know we're just at the stop, but it feels to me as if you could have the option where you have some sort of platform where you're dragging a lot of this in, and then the sort of workflow is able to sort of push it on, or whether we're going to have a sort of platform that, effectively, all these forms are sort of integrated as part part of that. So basically, mimicking or reproducing all of these credit applications and questionnaires, etc, all within the tool itself. So I suppose Russell, in my mind, I will show you guys all think about this, but whether it's something or even a combination thereof, where your main template is part of the tool, and you have this ability to drag an email in with support or drag a questionnaire in which has been done in words. So I don't want to put that out there that
+
+Russell Stewart 21:32
+I guess these outputs that you're going through now exist on your SharePoint site, say, somewhere today, these dot questionnaires that completed.
+
+Jonathan Holmes 21:40
+Yes, yeah. We basically save it all in a shared drive, yes, and then wrap it all up. You'll see at the end in a PDF which goes on DMS, yes,
+
+Russell Stewart 21:47
+yeah. I mean, because I was going the same way in thinking that, you know, if you send someone a link to approval, ideally, you know, they they may already have all the details behind it, so they could almost click Approve, they understand it, or they could see behind the hood and say, Actually, what did they come back with? The back with the answers for, you know, you can bring it into one place, exactly. Yeah, that seems like the right sort of design, really.
+
+Scott Carey 22:09
+Okay. I just wanted to, I'm sure there's various options, but I think you know, and you know, goes through the rest, and then, you know, we can provide you with, obviously, all this, and then follow up with any more questions. But yeah, thanks.
+
+Jonathan Holmes 22:29
+So yeah, to discuss point. So I guess how I envisaged it just, it's like some of these earlier things like this are basically just free text. So hopefully that could be achievable within but then as we get through there are some elements, for example, the credit analysis that we do then, you know, there's other templates, and it's pulling in things from different systems. And maybe that's not so achievable to fully automate, and we could save that as a later date, or whatever, just to get off the and then
+
+Russell Stewart 22:59
+just in this first part of the workflow, these steps, yeah, is there a cycle of going back around them as well? So, so this rejects people, yeah, they'll come back and sort of say, right, okay, I've spoken. I just did, yeah. So that can be quite a circular process. I suppose
+
+Jonathan Holmes 23:11
+it can be. So basically, I think all roads, we need the credit. So it needs to be, each request needs to be assigned to a person in credit as well. So who's going to pick this up? Okay, so again, this is just like the initial flow, so it doesn't have all of these overlays on, but so when they submit this, so credit inputs the DA level. So this would be also credit assigns a person who's going to be responsible for it, the DA level and whether or not the questionnaires is required. But then also that person then has the ability to send it back at any stage. Okay, send it back to the start, or to say, you know, let's just say, I don't know, Steven provides his sponsorship, but doesn't provide a comment as to why, or there's enough, you know, so we can just send it back to him. Say, you know, you haven't answered the question, or whatever. Or we can just bad example, or, or we can send it back to the, you know, some of the front office completes the new limit request form. Some of those will hopefully be, you know, fields, the compulsory fields you need to complete before it can move on. But if we're not happy that they haven't calculated the return on risk weighted assets properly, we can just send it back, okay? And then, and then they're like, oh, it's with us again. Because that,
+
+Russell Stewart 24:23
+I guess there ones where you've done all your analysis, and it's a hard reject, you know, we can't accept it, this thing, so no, but then there'll be ones where you send it back and say, Look, we need more information. Exactly. Look at
+
+Jonathan Holmes 24:32
+this. Yeah. I mean, I guess at any stage in this we can, we can just say to the relationship manager or the account executive, look, this whole thing doesn't have any legs, yeah. It's like, no point us carry on at all, and then it would just fall away, I guess. Yeah, yeah. That's sort of a more fundamental question of, are even happy to do this? And
+
+Russell Stewart 24:52
+then one other quick one on your left, yeah, do you get instances where you very much you've done quite you're almost it's a new request, either to adjust the limit again or do something where a lot of the work has already been done before. Yeah, and it's kind of then just picking up again. So I don't know you want to slightly adjust so there's a new transaction with an existing client, yeah, and so you would almost re reference the answers they'd send before. So
+
+Jonathan Holmes 25:15
+this is a point. It's really good point, and something that we just need to decide what we use this tool for. So I think Alvin in the front office initially thought, you know, this is just going to be for new structured transactions on the, you know, maybe on the FICKY side. And he's, and he was saying, you know, maybe sort of more financial institution clients to start with, right? Yeah. So he had a sort of a narrow scope, but we, we would like to build something that we can use for all clients, ultimately, so So not to sort of pigeonhole, pigeon hole ourselves in a way of doing things that only works with one type of client, yeah. But having said that, I think you know, for all of our clients, we do an annual credit review as well. So regardless of it, the client is the sales guys are asking for an amendment to a limit or a new limit we are reviewing. We're sort of going through a fair amount of these steps on an annual basis anyway. So I guess the question is, do we to start with? We probably don't want to use it for annual reviews, and we probably don't want to use it where it's a fairly basic amendment to an existing, you know, deal, where we've where we have all the information. But if this is a new client, or a substantially new limit to an existing client, then we would be proposing to put, put it through this workflow tool. So, yeah, I guess again, if it, if it works and it's going nicely, then we can put more volume through it. But it's not looking to cover everything right from the word go,
+
+Gavin Slater 26:55
+okay, yeah, makes sense. We should have a kind of a vision of what ultimately could be, yeah, but then what does version one,
+
+Jonathan Holmes 27:01
+exactly. I mean, ultimately, if it's an existing client, it would be nice if it pulled the risk grade from CRS, or the existing limits from adaptive. You know, all of this would be amazing, but, you know, in terms of sort of speed and just getting something to help us with the problem statement,
+
+Russell Stewart 27:14
+yeah. But then I was thinking, and I don't know, you guys might be better than me, but this, but you can almost annotate this. This serves quite well to just annotate parts of it. Couldn't you, you know, making this up, you could sort of say this legal review box, yeah, if that, if that's going to go to legal dB, it's going to extract information out. Yes, you could have a little opportunity to automate here, but not at this stage, maybe because at the moment, we're happy for users to go in there get that information and yeah, this is just going to trap for workflow, you could sort of say, look, it's well suited to requesting this information, processing it, that type of thing. Yeah, okay,
+
+Jonathan Holmes 27:47
+okay, so just whizzing through. So what we got here? So if required, front office completes the credit questionnaires we've seen that we've seen the sponsorship, which is usually just a simple person signing off, then legal review. So then, sorry, just
+
+Russell Stewart 28:01
+one quick question on this. So your example, this is where Steven said, approve, yes, in that box that then kicks off this sort of three pronged Exactly,
+
+Jonathan Holmes 28:10
+yes. So I've probably shown you this credit question too early. So here I'm just saying credit saying
+
+Gavin Slater 28:16
+there was it's determined that you need, that we need it, and then,
+
+Jonathan Holmes 28:20
+and if Steven is happy that we progress based on this form then, then it triggers these three things. One is they do that. Second is that legal always do a review of the docs in credit papers. So some of the static data is also similar to what's in the legal database, but most of their review is stuff that's not in the legal database. So this could be a review of if the docs are under negotiation, they may just be putting in their review. This is what we've proposed. We're still negotiating it. If it comes, if we sign something that's weaker, we'll come back to you and let you know it's weaker. And a lot of the cases it will be it's either signed or, you know, it's pretty much in the bag, so that would look like so I've used this for another example here. So there's a template which they fill out. And the template here is, this is their own template, by the way they created. So how I envisage this working is that the legal would select which document we're talking about, if it's like an is the a gmra, an FOA, or a loan agreement or something like that, right? So they would select and then a template would appear which looks like this table, which then they complete. There's
+
+Gavin Slater 29:43
+a different template for the like a GMRA agreement versus an ISDA agreement, yeah, slightly different
+
+Jonathan Holmes 29:47
+variations, but I mean nothing too materially different. So then they complete this sort of template of material, non standard provisions, you know, extra things that aren't necessarily in the legal database, right? And then also we need a sort of an option for them to be able to add other stuff. So here we've got like this. I chose this example because we were doing some offsetting deposit trades, so it wasn't covered by any of the aforementioned agreements. And there were some bespoke trade confirmations that were done. And it was all all very sort of structured and quirky. So then they provided all this additional analysis, you know, which was important for the credit decision. And then this is just separate so there needs to be, like, again, a free field where they can, you know, cover off those, those items. So where are we? So that's the legal review, critical then, so the credit analysis, so the credit analysis is, is its own sort of Beast, if you like, because it's got separate sections. And so I'll show you a paper. But again, for simplicity, to get this off the ground, I assumed, and to Scott's point, that this would just be a case of, we upload a Word file with all of our credit analysis, you would argue
+
+
+There is a short break in the recording.....
+
+Jonathan Holmes
+Counterpart and ownership there who owns the counterparty a bit more detail around that, that position in the market, perhaps the bank instructor in that country for Ghana in this case, um, some bullet point summarizing the financial position, the key risks are rating of the of the bank, uh, we have a climate and environmental risk score card, which is in the Appendix, which we have to complete, which, by the way, copilot was quite good at completing for us, because it grabbed the sources from different information. We have a scoring system. it was able to use logic to come up with a score based on our system. So you know, there's one area that we probably the biggest area that we found copilot was helpful for. And then a recommendation at the bottom, if we're falling against it, in this case, we were struggling with this as quite a long recommendation, uh and then section C here, uh at the bottom of the right there is more detailed financial analysis based on, you know, the capital um and then we've got this sort of subtables Asset quality, uh earnings and profitability, um funding and liquid. So this is sort of the more the weeds of our analysis, um and then a peer table comparing GCB Bank with other Ghana banks and where it sits and ranks. So again, this is a stuff like Gavin saying one day we could have all of this in. But you know, we're probably biting off more than we want to do. 
+
+Russell Stewart
+I just guys before sort of having this session, I was almost splitting it in two in my head, one potential to do stuff of where we might look at AI but then also very much the I don't say the bulk standard, but the workflow requirement. Yeah, here's what we want to structure. Here' were want to get reporting an MI and and and have those two parts, so, um 
+
+Jonathan Holmes
+I think the work for those are the main problem statement, 
+
+Russell Stewart
+I guess that's the one you've got here now, yeah, which makes sense. 
+
+Jonathan Holmes
+So so I'll leave it there on this because this so then basically what you'll see is that everything else here is a combination of what we've discussed already. So this is Steven's support going in as an appendix um yeah, some other other inputs from South Africa, um compliance things, which is not always required. Here's the climate and environmental scorec card, which we do, and then this is the legal doc summary. So basically why envisage is what we could do is just have everything that does not in the tool that credit has done complete it in word, then upload it into this workflow tool, and then it somehow merges all of the bits that are not included in the paper, and then you end up with a final sort of yeah, if a bit like the New Pproduct approval tool that sort of thing.
+
+Grad
+Yeah, and then I sorry, I have a question. so these are three stepss, right? the parallel ones. is it someone who actually chases, uh, for example, front office for the questionnaire and legal for the legal review, so someone like them all like how is the communication co-ordination done. 
+
+Russell Stewart
+It's a good question I say if you if you are the current an analyst on this particular request, are you sitting over the top of this or is it the front office person that's chasing legal and chasing? 
+
+Jonathan Holmes
+Well, um so so the front office so the new one says the front office may be chasing legal to actually get the dog negotiated. But we would um sit over the top and say, well, wherever you are with that, can you complete this? uh, you know, template. So, ultimately, yes, it is coming from credit, so we would say to legal, we need your input on this deal, please. You know, give us your input. uh, Mr. accounting executive, you know, this this requirement this request meets the requirement to do a credit questionnaire, can you get that sorted out as well? And then we're being chased all along the way and we're saying, well, legal hasn't done this, you haven't done this yet. So be nice to have somewhere where then also management on the front office can say, you know, these are all the different requests. 
+
+Gavin Slater
+ultimately you are the ones who have to sign all for otherwise is not going to happen, hence you're kind of almost seen as the overall owners, even though the front office really is pushing for this, but because we're the ones who can't go ahead unless we sign off. 
+
+Jonathan Holmes
+you know, well it would be nice if either us or front of us could then see at various points, you know, who's doing what, you know, why isn't this progressed? Oh, it's still with the front office, you know, or whatever. 
+
+Grad1
+Are these three process are kicked off parallelly, do, for example, as a credit, analysis, we need something input from the for example, the credit questionnaire or the legal review, and then combines them together into the analysis, or just three separately and then the end of it. 
+
+Jonathan Holmes
+You're right. So they they can kick off together, but it would always be that bottom one that finishes last, because if Legal say, this is the worst documentation I've ever seen, we're gonna say, hey, well, we don't like this, we're not gonna do it, say equally, if there's some scary answers from the credit questionnaire about, you know, the clients, liquidity picture or whatever, and there's some stuff that we found out from that that's not in the public domain then we won't do it.
+
+Gavin Slater
+There are interactions between those three processes happening all the time.
+
+Russell Stewart
+Do you tend to find it's named individuals in the other departments
+
+Jonathan Holmes
+So so legal.. may have to go to someone like not Marisa, it depends what the transaction is, if it's a yeah, if it's a private side, um loan so yeah, maybe it needs to go to David Guthrie or someone legal who would then be responsible for assigning things. basically. um yeah. Or or just have an ability for everyone who's part of the system to to take ownership or whatever the most sufficient way is, 
+
+Russell Stewart
+um I'm not a fan of fanrical as a system, but thing when it goes to it goes to a general team and everyone in the team can see the inbox and just pick out themselves. I'm David he's gonna go nuts... 
+
+Gavin Slater
+Yeah, so I mean most of the time everyone knows what they should be doing anyway, so yeah, but yeah. same way you know you know depending on type of deal, who's gonna legal, depending on the nature of that type of documentation involved, it's gonna go to a typically a particular team. Definitely. 
+
+Jonathan Holmes
+So it's applies. and then, yeah, with the approval of these last two steps, I mean, so we could either have it so that so this is the eight scale delegated authority scale I mentioned where one and two is a committee, but three to eight are individuals, so you could have when this final paper is produced, you could have you, it would be quite nice, I don't know people who might have Chris, you might have a different view on this, but if it's if it's been completed, then it could go to say, Chris for approval and then he would he would be able to look at or download, at least click on the PDF and it would download with all the prior inputs into it. And then he could provide his approval into the system. If it was a credit committee name, then that PDF would basically be downloaded and then sent out as part of a meeting invite to, you know, you know, the committee. and then what happens is when it goes to the committee, if it's approved, there are minutes which are written in word, and again, it would be nice if those minutes could then be uploaded and then merged with the um the PDF. So then youve sort of got a wrapper of like the all of the inputs and the approval, which in the credit committee cases the minutes or in a individual approval is just uh them clicking on a box saying approved 
+
+Russell Stewart
+I guess could you think simplistically so your DA3 would be a list of names like you say on the grid of and then could you also have would DA1 and DA2 to be a kind of Scott type approval and then he's attaching the minute? Is it that kind of thing could work that way that it would go on to is it still an individual that would sit over the top of that committee.
+
+Jonathan Holmes
+Well I think it would just be on the credit manager to to be, so if it's DA1 or D2 it just you click DA1 or two and then basically maybe the next box is um upload from the So for example, like this is a finally completed app here on the same example, GCB as a PDF. So there has all those inputs and the paper, so you can see the paper starts from page two, but page one is uh is just a minute from the committee and the bottom head decision that the majority of members were in favor of giving the desk of flexibility and this this was what was this is what was approved. and in most cases it might just say approved anyway. um and then there's a this is a bit confusing because it's doing two clients in one here, but normally it's what what is uh what is proposed and what is approved to if a committee approved something different to what was originally requested. um but yeah, I mean, that nuance isn't that important for this. But yeah, and then at the end of it, you'd have so then you'd be able to go to so this this arrow here, like showing you an overview page where you've got all the different requests and the status and then the last one would be sort of approved in green and you could click on the PDF and you could see it. And then that would be useful for front office well, would have other benefits. So, for example, if they're booking um loan in uh what is it, the EXIMBILLS so insurance, and they're booking in insurance in EXIMbills, the XM bills team in Singapore require a copy of the credit approval before they book it, for example, So it would be good if then other stakeholders can go in and they can click on the PDF and they have what they want and it just reduces email traffic as well., makes sense.  There may be other syergies there. Gosh, I've been rambling on for ages.. 
+
+Russell Stewart
+And and the examples that you had a are we able to get bthem to send them around in an email. That would be great. 
+
+
+Jonathan Holmes
+So, yeah, you said in terms of you eventually, I guess processing this and then re replaying to us. 
+
+Russell Stewart
+Yeah, it's because it feels like we will scurry away and look at things, but it feels from what you said, nothing different. You know, it's great to have some colour on some examples, but nothing different to what you guys are put in the BRD or business from this document. and understanding it. but it feels like cool thing to have some workflow and then with all of these workflow tools, once you've you've got this information, it's got a database behind it, you can then do MI and reporting that, you know, you can flash up some screens and dashboard, you can say, you know, where things in the process... you could you could put those certain things in. But um and then it feels as as if even though there's quite a bit of there is a little nuance suppose that's in the document creation side, which is quite interesting, you know, potential to be able to append, you know, go you could have one way where you don't have documents, you have screens and forms, but the the idea produces a word or a PDF document at the end of it is that we're picking up with that, that that shouldn't be too difficult, I don't think there's plenty of tools that can do that. New Product Approval tool it doesn't it' free three boxes and then it somehow that's that up as a one of the work for options, so effectively from from our side, that is just a an in house written SQL server, database with some C sharp or some some dotnet code round at the top of it. I will take a look at that bit more detail, because it's it sounds like a similar type process. I can extend that, that could be could be, you know, or reuse some of that, but um yeah. 
+
+Jonathan Holmes
+But that's to your point now that is like taking text and putting in a PDF. But then I may be saying, can we merge it with uh, yeah, true yeah. Yeah, yeah, yeah. But as we get into it, like obviously the nuances of each of these stages, like all the look up, you know, who would have to approve the sponsor things and maybe logic like that, you know, yeah, obviously Chris or I happy to you know, sit down with whoever at the time and make sure each screen is going to the right next place or whatever. happy to spend as much time as necessary. 
+
+Russell Stewart
+Well, that sounds good. and then um yeah, indications, I guess, on, you know, current pain points and heaviness have lifting and those sort of things. you know, if there is stuff where looking up on other systems with massively save time, I mean, certainly if it's the same repairs of external information but I' say maybe maybe a company like Fitch have already taken care of that problem so you kind of think, you know, you don't need to go externally to do as much of that. I don't know. Um Okay. And then um when you were saying the credit messages was one last question, was there any internal credit risk of systems we use? CRS and those sort of things to pull into that.
+
+Jonathan Holmes
+There are two, um but it's all done manually ultimately. I mean, there's CRS and there's Adaptive. so you're looking at, um this, for example, these ratings here is current rating RG 24. is generated by going through the CRS process and then has spits out a rating and then we put that here and we put the old one next to it. And these limits here, this is a summary of the limits, but um you know, this table here is more reflective of what we see an Adaptive. um but that's yeah, we've we have opened up adaptive and we've basically just jotted down the numbers here. So this table reflects what adaptive is showing. So yeah, again, one day it would be amazing if all of this was just pulled in and um yeah. Yeah. But maybe that's, 
+
+Gavin Slater
+I mean, that that should be obvious stuff. I mean it's not too much system we know it's an a template form it's exactly. There's we take some version of data, then we've got a decision, we've got decide that, then that's more, but yeah, if you if you're literally doing those things in, but like you say, also just copying a couple of numbers in a table is not at the end of. my question what is the most time consuming? 
+
+Jonathan Holmes
+That's a very good question. So, I mean, ultimately I think in reality, a a large part of the end end process is actually coordinating to get the information it's the back and forth and the where is this and if if I sit down or any of the creditors sit down to do the financial analysis, you know, if you look yourself in a room for a couple of hours, you can, you know, we've done it before. You know, so it doesn't take too long. um, but, you know, chiving up the front office to complete the questionnaire, asking if anyone's run this by Mr. Jin before it goes to credit committee, you know, is he aware? Like all of the side discussions and where does it sit, all of that? Is nightmare. So I think having a golden system where we can all just point and say this is where it's at, you know, it's been with him or her.
+
+Gavin Slater
+almost one of the important features is tracking the time. So not to end time, but then within the whole process, how much time was spent on which particular pass? Because almost you need that to be generated so that you can because as you say, that's that's that's where the efficiencies can be had. So if you can have something which actually tells you, you know what? actually the, you know, getting the legal documentation process actually is the piece, which is taking of X amount of time, can assumes X percent of that time. That type of statistics or information is core to the actual build itself. 
+
+Jonathan Holmes
+And so the other thing I should mention is on this overlay here, there's a lot of work that goes into because obviously we get many different um credit limited requests. So, a lot of the debate between credit and front office is actually over which one are we doing first? So, which one is prioritized? So, I think also embedded in that overall screen um would be a way for to basically rank them in order of importance, you know, uh, you know, so if there's they put in ten requests here, so we have a separate set of discussions that are weekly and bi weekly whatever, and what the pipeline looks like and which one are we doing first and it's kind of a chicken and eggs situation, is the client ready to trade this, but the do, you know the documents are a month away, so we won't start that one. now we'll start something else. But I think an overall priority ranking from the front office, which again should hopefully be very easy to implement just on this overall screen, if they can just, you know, add a drop down box of onto what's the priority. 
+
+Gavin Slater
+So based the criteria you based in you can I mean that seems because there's probably a bunch of features like they're not hard this but there's probably a number of things which are typical, like you sort of say, like, you know, how close how close are we to having legal documentation or you know, and there's there's probably a few different things which we can almost some kind of capture which would then feed into it
+
+Jonathan Holmes
+It's more subjective I think it's I think what we need is just literally um, if there is 10 requests in the system, you know, the ability for someone in front office to assign one, two, three, four, five, six, seven, ten, because it can be, you know, we can have a request that is needed by the client by quarter end to get some financing and it's gonna make us ten million bucks a year, you know, then that should be number one, right? Whereas if, you know, so there are various things that play into what's priority and it all gets very political because then there are desks who have lots of small requests, for example, like flow trading requests, um and they can make a couple of hundred thousand for each one per year, but put them together and you've got a good franchise that's sustainable, but then, you know, someone from Fixed Income will come in and have like some, you know, big trade that ears PV'd and earns all the money up front, and, you know, we want everyone has to drop everything to do that for one trade. so but I think, you know, all that so sort of noise aside, I think just overall having a status screen of what's prioritized or, you know when does the front office want thing's done by and where are we in the process? That's the yeah. 
+
+Russell Stewart
+And then one last thing, because I know, is that time, um did you mention Neil had done the co pilot? Did you say Neil? 
+
+Jonathan Holmes
+Yeah, it's Neil Venables has basically gone through our credit process to see um to see what copilot can be used for and he's just written up some of the some of the points. So, uh he's just finishing it now. So um when that's done, I can send that to whoever.
+
+Russell Stewart
+Maybe a second session just to follow up on that, and then maybe bundle it in with this Fitch, Genie, AI, type of thing that we can see if we can help push that.. 
+
+Jonathan Holmes
+That would be helpful we' just like, obviously, I think the background is that, you know, the volumes are increasing within credit currently, and across the bank, with our budgets and everything. So, you know, we're just trying to see where we, you know, hiring people is not always the answer to everything, so trying to see where we can make efficiencies, you know, and using AI is one of those, yeah. 
+
+Russell Stewart
+I think links to kind of the original linking in with guys on on on things that could essentially be done. so yeah, it gets gets us sort of takes some of the nice the knows up with. I'll find a spot for that then. Cool, thank you very much. like to send around these examples and there just everyone on on this if that's. Cool. and then I'll I'll kind of play that back probably in a couple of weeks. and oh, come up with a little bit of plan for a plan, I guess... Sounds good.. Thank you. Thank you. 
+
+
