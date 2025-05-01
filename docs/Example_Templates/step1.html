@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Credit Limit Application - Basic Information</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+    <!-- Page-specific CSS -->
+    
+    <style>
+        :root {
+            --icbc-red: #e31937; /* ICBC red */
+            --standard-blue: #0c4da2; /* Standard Bank blue */
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --dark-gray: #666666;
+            --white: #ffffff;
+            --font-primary: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            font-family: var(--font-primary);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--standard-blue);
+            padding-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link {
+            padding: 10px 16px;
+            color: var(--white);
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            color: var(--white);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--icbc-red);
+        }
+        
+        .sidebar-link i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-heading {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar {
+            background-color: var(--standard-blue);
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+        }
+
+        .sidebar-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        main {
+            margin-left: 16.666667%;
+            background-color: var(--light-gray);
+            min-height: calc(100vh - 56px);
+            padding: 2rem;
+        }
+
+        .content-wrapper {
+            max-width: 100%;
+        }
+        
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .card-header {
+            background-color: var(--white);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 3px 7px;
+            border-radius: 50%;
+            background: var(--icbc-red);
+            color: var(--white);
+            font-size: 0.7rem;
+        }
+        
+        .workflow-state {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        
+        .priority-high {
+            background-color: var(--icbc-red);
+            color: var(--white);
+        }
+        
+        .priority-medium {
+            background-color: #F58220;
+            color: var(--white);
+        }
+        
+        .priority-low {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .multi-step-progress {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step .circle {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step.completed .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step .label {
+            font-size: 0.85rem;
+        }
+        
+        .step::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: var(--light-gray);
+            top: 15px;
+            left: 50%;
+            z-index: 1;
+        }
+        
+        .step:last-child::after {
+            display: none;
+        }
+        
+        .step.active::after, .step.completed::after {
+            background-color: var(--standard-blue);
+        }
+        
+        .btn-primary {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+            color: var(--white);
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+        }
+        
+        .btn-danger {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-danger:hover, .btn-danger:focus {
+            background-color: #b31930;
+            border-color: #b31930;
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--standard-blue) !important;
+        }
+        
+        .page-link {
+            color: var(--standard-blue);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .navbar-brand img {
+            margin-right: 10px;
+            height: 35px;
+        }
+        
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link {
+            color: var(--standard-blue);
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link:focus {
+            color: var(--icbc-red);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        a {
+            color: var(--standard-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--icbc-red);
+        }
+        
+        .logo-icbc {
+            color: var(--icbc-red);
+            font-weight: bold;
+        }
+        
+        .logo-standard {
+            color: var(--standard-blue);
+            font-weight: bold;
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/static/logo.jpg" alt="ICBC Standard Bank Logo" class="d-inline-block align-top">
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="/notifications/">
+                            <i class="fas fa-bell"></i> Notifications
+                            
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> Monika Houser
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/logout/">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-content">
+                <a href="/" class="sidebar-link ">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="/requests/create/" class="sidebar-link">
+                    <i class="fas fa-plus-circle"></i> New Request
+                </a>
+                <a href="/counterparties/" class="sidebar-link ">
+                    <i class="fas fa-building"></i> Counterparties
+                </a>
+                <hr class="bg-secondary">
+                <div class="sidebar-heading text-white px-3 py-2">
+                    <small>MY REQUESTS</small>
+                </div>
+                <a href="/?filter=assigned" class="sidebar-link">
+                    <i class="fas fa-tasks"></i> Assigned to Me
+                    
+                </a>
+                <a href="/?filter=originated" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i> My Requests
+                    
+                </a>
+                <a href="/?filter=approval" class="sidebar-link">
+                    <i class="fas fa-check-circle"></i> Pending Approval
+                    
+                </a>
+                </div>
+            </nav>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Messages -->
+
+                
+                
+                
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>New Credit Limit Application</h2>
+        <p class="text-muted">Step 1: Basic Information</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="multi-step-progress mb-4">
+    <div class="step active">
+        <div class="circle">1</div>
+        <div class="label">Basic Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">2</div>
+        <div class="label">Limit Requests</div>
+    </div>
+    <div class="step">
+        <div class="circle">3</div>
+        <div class="label">Relationship Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">4</div>
+        <div class="label">Business Justification</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Basic Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="gj727IEkflNnrxXYwBQtxIq8vwxBwuF5Mv5eLJ6MbdpbrjyARqIDphqGkxRdc0CW">
+            
+            <div class="mb-3">
+                <label for="id_counterparty" class="form-label">Counterparty</label>
+                <select name="counterparty" class="form-select" required id="id_counterparty">
+  <option value="" selected>-- Select Counterparty --</option>
+
+  <option value="5">Africa Resources (AR75319)</option>
+
+  <option value="3">American Steel Inc (AS24680)</option>
+
+  <option value="4">Asian Commodities Ltd (AC13579)</option>
+
+  <option value="2">Euro Metal Trading (ET98765)</option>
+
+  <option value="1">Global Mining Corp (GC12345)</option>
+
+</select>
+                
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_title" class="form-label">Request Title</label>
+                <input type="text" name="title" maxlength="200" class="form-control" required id="id_title">
+                
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <div>
+                    
+                        <div class="form-check form-check-inline">
+                            <input type="radio" name="priority" value="low" class="form-check-input" id="id_priority_0" required>
+                            <label class="form-check-label" for="id_priority_0">Low</label>
+                        </div>
+                    
+                        <div class="form-check form-check-inline">
+                            <input type="radio" name="priority" value="medium" class="form-check-input" id="id_priority_1" required checked>
+                            <label class="form-check-label" for="id_priority_1">Medium</label>
+                        </div>
+                    
+                        <div class="form-check form-check-inline">
+                            <input type="radio" name="priority" value="high" class="form-check-input" id="id_priority_2" required>
+                            <label class="form-check-label" for="id_priority_2">High</label>
+                        </div>
+                    
+                </div>
+                
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_required_by_date" class="form-label">Required By Date</label>
+                <input type="date" name="required_by_date" class="form-control" id="id_required_by_date">
+                
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_priority_justification" class="form-label">Priority Justification</label>
+                <textarea name="priority_justification" cols="40" rows="3" class="form-control" id="id_priority_justification">
+</textarea>
+                <div class="form-text">Justification is required for high priority requests.</div>
+                
+            </div>
+            
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+            </main>
+        </div>
+        
+        <!-- Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
+        <!-- Custom JavaScript -->
+        <script>
+            // Enable tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+            
+            // Auto-hide alerts after 5 seconds
+            window.setTimeout(function() {
+                $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                    $(this).remove(); 
+                });
+            }, 5000);
+            
+            // Toggle sidebar on mobile
+            document.querySelector('.navbar-toggler').addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('show');
+            });
+        </script>
+        
+        
+<script>
+    // Show/hide priority justification based on priority selection
+    $(document).ready(function() {
+        // Function to toggle priority justification visibility
+        function togglePriorityJustification() {
+            var priorityValue = $('input[name="priority"]:checked').val();
+            var justificationField = $('#id_priority_justification').closest('.mb-3');
+            
+            if (priorityValue === 'high') {
+                justificationField.show();
+            } else {
+                justificationField.hide();
+            }
+        }
+        
+        // Initial check
+        togglePriorityJustification();
+        
+        // On change event
+        $('input[name="priority"]').change(function() {
+            togglePriorityJustification();
+        });
+    });
+</script>
+
+    </body>
+    </html>

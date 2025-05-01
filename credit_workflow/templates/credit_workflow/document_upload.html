@@ -1,0 +1,54 @@
+{% extends 'credit_workflow/base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-2">Upload Document</h2>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Document Details</h5>
+            
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                
+                <div class="row g-3">
+                    <!-- Credit Request -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
+                        {{ form.credit_request|add_class:'form-select' }}
+                        {% if form.credit_request.errors %}
+                            <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Select the credit request this document belongs to</small>
+                    </div>
+                    
+                    <!-- File Upload -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.file.id_for_label }}" class="form-label">Document File</label>
+                        {{ form.file|add_class:'form-control' }}
+                        {% if form.file.errors %}
+                            <div class="invalid-feedback d-block">{{ form.file.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Supported formats: PDF, DOCX, XLSX, JPG, PNG (max 10MB)</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-4">
+                    <i class="bi bi-info-circle"></i> Documents uploaded will be associated with the selected credit request and accessible to all users with permission to view the request.
+                </div>
+                
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'creditrequest_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Upload Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

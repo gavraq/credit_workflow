@@ -1,0 +1,327 @@
+{% extends 'credit_workflow/base.html' %}
+{% load workflow_tags %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">{% if mode == 'edit' %}Edit{% else %}New{% endif %} Credit Request</h2>
+            <p class="text-muted">{% if mode == 'edit' %}Update the details for credit request #{{ credit_request.request_number }}{% else %}Complete all fields to create a new credit request{% endif %}</p>
+        </div>
+        <div>
+            <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold">Step 2: Limit Requests</span>
+            <span class="text-muted">2 / 4</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 50%"></div>
+        </div>
+    </div>
+    
+    <form method="post" id="limit-form" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Limit Requests</h5>
+            </div>
+            <div class="card-body">
+                <!-- Display existing limit requests if any -->
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered" id="limits-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Limit Type</th>
+                                <th>Existing Amount (M)</th>
+                                <th>Existing Tenor (months)</th>
+                                <th>Proposed Amount (M)</th>
+                                <th>Proposed Tenor (months)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if limit_requests and limit_requests|length > 0 %}
+                                {% for limit in limit_requests %}
+                                <tr data-limit-id="{{ forloop.counter0 }}">
+                                    <td>
+                                    {% for limit_type in limit_types %}
+                                        {% if limit_type.id|stringformat:"s" == limit.limit_type|stringformat:"s" %}
+                                            {{ limit_type.name }}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td>
+                                    <td>{{ limit.existing_limit_amount|default:"-" }}</td>
+                                    <td>{{ limit.existing_tenor_months|default:"-" }}</td>
+                                    <td>{{ limit.proposed_limit_amount }}</td>
+                                    <td>{{ limit.proposed_tenor_months }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-limit-btn">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="no-limits-row">
+                                    <td colspan="6" class="text-center py-3">
+                                        No limit requests added yet. Fill out the form below and click "Add Limit Request".
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Form to add a new limit request -->
+                <div class="card border-light mb-3">
+                    <div class="card-header bg-light">Add New Limit Request</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Include the formset management form -->
+                            {{ wizard.form.management_form }}
+                            
+                            <!-- Limit Type (full width) -->
+                            <div class="col-12">
+                                <label for="id_limit_type" class="form-label">Limit Type</label>
+                                <select id="id_limit_type" name="limit_type" class="form-select">
+                                    <option value="">Select a limit type</option>
+                                    {% for limit_type in limit_types %}
+                                        <option value="{{ limit_type.id }}">{{ limit_type.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <!-- Debug info -->
+                                {% if limit_types %}
+                                <small class="text-muted">{{ limit_types.count }} limit types available</small>
+                                {% else %}
+                                <small class="text-danger">No limit types found! Please run the load_limit_types command.</small>
+                                {% endif %}
+                                <div id="limit_type_error" class="invalid-feedback"></div>
+                            </div>
+                            
+                            <!-- Existing Amount and Tenor (on same line) -->
+                            <div class="col-md-6">
+                                <label for="id_existing_limit_amount" class="form-label">Existing Amount (M)</label>
+                                <input type="number" id="id_existing_limit_amount" name="existing_limit_amount" 
+                                      class="form-control" step="0.01" placeholder="Optional">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_existing_tenor_months" class="form-label">Existing Tenor (months)</label>
+                                <input type="number" id="id_existing_tenor_months" name="existing_tenor_months" 
+                                      class="form-control" placeholder="Optional">
+                            </div>
+                            
+                            <!-- Proposed Amount and Tenor (on same line) -->
+                            <div class="col-md-6">
+                                <label for="id_proposed_limit_amount" class="form-label">Proposed Amount (M)</label>
+                                <input type="number" id="id_proposed_limit_amount" name="proposed_limit_amount" 
+                                      class="form-control" step="0.01" required>
+                                <div id="proposed_limit_amount_error" class="invalid-feedback"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_proposed_tenor_months" class="form-label">Proposed Tenor (months)</label>
+                                <input type="number" id="id_proposed_tenor_months" name="proposed_tenor_months" 
+                                      class="form-control" required>
+                                <div id="proposed_tenor_months_error" class="invalid-feedback"></div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <button type="button" id="add-limit-btn" name="add_limit" class="btn btn-outline-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Limit Request
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-3">
+                    <i class="bi bi-info-circle me-2"></i> You must add at least one limit request before proceeding.
+                    <ul class="mb-0 mt-1">
+                        <li><strong>Step 1:</strong> Fill out all fields in the form</li>
+                        <li><strong>Step 2:</strong> Click "Add Limit Request" to add it to the list above</li>
+                        <li><strong>Step 3:</strong> Repeat as needed for multiple limit requests</li>
+                        <li><strong>Step 4:</strong> Click "Next" when you've added all limit requests</li>
+                    </ul>
+                </div>
+                
+                <!-- Hidden input to store all limit requests as JSON -->
+                <input type="hidden" id="limit_requests_json" name="limit_requests" value="{% if limit_requests %}{{ limit_requests|to_json }}{% else %}[]{% endif %}">
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <button type="submit" name="wizard_goto_step" value="step1" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i> Previous</button>
+            <button type="submit" class="btn btn-primary" id="next-button" {% if not limit_requests or limit_requests|length == 0 %}disabled{% endif %}>Next <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+    </form>
+</div>
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get references to key elements
+        const limitTypesSelect = document.getElementById('id_limit_type');
+        const existingAmountInput = document.getElementById('id_existing_limit_amount');
+        const existingTenorInput = document.getElementById('id_existing_tenor_months');
+        const proposedAmountInput = document.getElementById('id_proposed_limit_amount');
+        const proposedTenorInput = document.getElementById('id_proposed_tenor_months');
+        const addButton = document.getElementById('add-limit-btn');
+        const limitsTable = document.getElementById('limits-table');
+        const limitRequestsJson = document.getElementById('limit_requests_json');
+        const nextButton = document.getElementById('next-button');
+        const noLimitsRow = document.getElementById('no-limits-row');
+        
+        // Store the limit types for lookup
+        const limitTypesMap = {};
+{% for limit_type in limit_types %}
+        limitTypesMap["{{ limit_type.id }}"] = "{{ limit_type.name }}";
+{% endfor %}
+        
+        // Initialize the limits array from existing data
+        let limitRequests = [];
+        try {
+            limitRequests = JSON.parse(limitRequestsJson.value);
+        } catch(e) {
+            limitRequests = [];
+        }
+        
+        // Add a new limit request
+        addButton.addEventListener('click', function() {
+            // Validate the inputs
+            let isValid = true;
+            
+            // Reset error messages
+            document.getElementById('limit_type_error').textContent = '';
+            document.getElementById('proposed_limit_amount_error').textContent = '';
+            document.getElementById('proposed_tenor_months_error').textContent = '';
+            
+            // Check required fields
+            if (!limitTypesSelect.value) {
+                document.getElementById('limit_type_error').textContent = 'Please select a limit type';
+                limitTypesSelect.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                limitTypesSelect.classList.remove('is-invalid');
+            }
+            
+            if (!proposedAmountInput.value) {
+                document.getElementById('proposed_limit_amount_error').textContent = 'Please enter a proposed amount';
+                proposedAmountInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                proposedAmountInput.classList.remove('is-invalid');
+            }
+            
+            if (!proposedTenorInput.value) {
+                document.getElementById('proposed_tenor_months_error').textContent = 'Please enter a proposed tenor';
+                proposedTenorInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                proposedTenorInput.classList.remove('is-invalid');
+            }
+            
+            if (isValid) {
+                // Create a new limit request object
+                const newLimit = {
+                    limit_type: limitTypesSelect.value,
+                    existing_limit_amount: existingAmountInput.value || null,
+                    existing_tenor_months: existingTenorInput.value || null,
+                    proposed_limit_amount: proposedAmountInput.value,
+                    proposed_tenor_months: proposedTenorInput.value
+                };
+                
+                // Add to the limits array
+                limitRequests.push(newLimit);
+                
+                // Update the hidden JSON field
+                limitRequestsJson.value = JSON.stringify(limitRequests);
+                
+                // Add new row to the table
+                if (noLimitsRow) {
+                    noLimitsRow.remove();
+                }
+                
+                const tbody = limitsTable.querySelector('tbody');
+                const newRow = document.createElement('tr');
+                newRow.dataset.limitId = limitRequests.length - 1;
+                
+                newRow.innerHTML = `
+                    <td>${limitTypesMap[newLimit.limit_type]}</td>
+                    <td>${newLimit.existing_limit_amount || '-'}</td>
+                    <td>${newLimit.existing_tenor_months || '-'}</td>
+                    <td>${newLimit.proposed_limit_amount}</td>
+                    <td>${newLimit.proposed_tenor_months}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-limit-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(newRow);
+                
+                // Enable the Next button
+                nextButton.disabled = false;
+                
+                // Clear the form
+                limitTypesSelect.value = '';
+                existingAmountInput.value = '';
+                existingTenorInput.value = '';
+                proposedAmountInput.value = '';
+                proposedTenorInput.value = '';
+            }
+        });
+        
+        // Remove a limit request (delegate to tbody for dynamically added buttons)
+        limitsTable.querySelector('tbody').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-limit-btn') || e.target.closest('.remove-limit-btn')) {
+                const row = e.target.closest('tr');
+                const limitId = parseInt(row.dataset.limitId);
+                
+                // Remove from the array
+                limitRequests.splice(limitId, 1);
+                
+                // Update the hidden field
+                limitRequestsJson.value = JSON.stringify(limitRequests);
+                
+                // Remove the row
+                row.remove();
+                
+                // If no limits left, add the empty message and disable Next
+                if (limitRequests.length === 0) {
+                    const tbody = limitsTable.querySelector('tbody');
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.id = 'no-limits-row';
+                    emptyRow.innerHTML = `
+                        <td colspan="6" class="text-center py-3">
+                            No limit requests added yet. Fill out the form below and click "Add Limit Request".
+                        </td>
+                    `;
+                    tbody.appendChild(emptyRow);
+                    nextButton.disabled = true;
+                }
+                
+                // Re-number the rows
+                const rows = limitsTable.querySelectorAll('tbody tr:not(#no-limits-row)');
+                rows.forEach((row, index) => {
+                    row.dataset.limitId = index;
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

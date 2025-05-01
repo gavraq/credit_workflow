@@ -1,0 +1,129 @@
+{% extends 'credit_workflow/base.html' %}
+{% load workflow_tags %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Main content area -->
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Credit Review</h2>
+        <div>
+          <a href="{% url 'creditrequest_detail' object.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Credit Request
+          </a>
+        </div>
+      </div>
+
+      <!-- Credit Request Summary Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Request Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Request Number:</strong> {{ object.request_number }}</div>
+            <div class="col-md-4 mb-2"><strong>Counterparty:</strong> {{ object.counterparty }}</div>
+            <div class="col-md-4 mb-2"><strong>Status:</strong> <span class="badge bg-primary">{{ object.workflow_state.name }}</span></div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Submitter:</strong> {{ object.submitter }}</div>
+            <div class="col-md-4 mb-2"><strong>Business Sponsor:</strong> {{ object.business_sponsor }}</div>
+            <div class="col-md-4 mb-2">
+              <strong>Priority:</strong>
+              <span class="badge {% if object.priority == 'High' %}bg-danger{% elif object.priority == 'Medium' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                {{ object.priority }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Required By:</strong> {{ object.required_by_date }}</div>
+            <div class="col-md-4 mb-2"><strong>Revenue (Last 12m):</strong> ${{ object.revenue_last_12m|floatformat:2 }}</div>
+            <div class="col-md-4 mb-2"><strong>Projected Revenue:</strong> ${{ object.projected_revenue|floatformat:2 }}</div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Projected RoRWA %:</strong> {{ object.projected_rorwa_percentage|floatformat:2 }}%</div>
+            <div class="col-md-4 mb-2"><strong>Country Risk Confirmed:</strong> {{ object.country_risk_limit_confirmed|yesno:"Yes,No" }}</div>
+            <div class="col-md-4 mb-2"><strong>KYC Approval Status:</strong> {{ object.kyc_approval_status }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit Review Form -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Review Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <div class="row mb-4">
+              <!-- Assigned Analyst -->
+              <div class="col-md-4 mb-3">
+                <label for="id_assigned_analyst" class="form-label">Credit Analyst</label>
+                {{ form.assigned_analyst|add_class:'form-select' }}
+                {% if form.assigned_analyst.errors %}
+                  <div class="invalid-feedback d-block">{{ form.assigned_analyst.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Select the analyst responsible for this review</small>
+              </div>
+
+              <!-- DA Level -->
+              <div class="col-md-4 mb-3">
+                <label for="id_da_level" class="form-label">DA Level</label>
+                {{ form.da_level|add_class:'form-select' }}
+                {% if form.da_level.errors %}
+                  <div class="invalid-feedback d-block">{{ form.da_level.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Questionnaire Required -->
+              <div class="col-md-4 mb-3">
+                <label class="form-label d-block">Questionnaire Required</label>
+                <div class="form-check form-switch">
+                  {{ form.questionnaire_required|add_class:'form-check-input' }}
+                  <label class="form-check-label" for="id_questionnaire_required">
+                    Required for this request
+                  </label>
+                </div>
+                {% if form.questionnaire_required.errors %}
+                  <div class="invalid-feedback d-block">{{ form.questionnaire_required.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Credit Review Notes -->
+            <div class="mb-3">
+              <label for="id_credit_review_notes" class="form-label">Credit Review Notes</label>
+              {{ form.credit_review_notes|add_class:'form-control'|attr:'rows:8' }}
+              {% if form.credit_review_notes.errors %}
+                <div class="invalid-feedback d-block">{{ form.credit_review_notes.errors }}</div>
+              {% endif %}
+              <small class="text-muted">Provide comprehensive review notes for this credit request</small>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+              <i class="bi bi-info-circle me-2"></i> The credit review assessment is a critical stage in the workflow. Please ensure all fields are completed accurately before proceeding.
+            </div>
+            
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% url 'creditrequest_detail' object.id %}" class="btn btn-outline-secondary me-2">Cancel</a>
+              <button type="submit" class="btn btn-primary">Complete Review</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

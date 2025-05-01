@@ -1,0 +1,517 @@
+{% extends 'credit_workflow/base.html' %}
+{% load workflow_tags %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Main content area -->
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Credit Request #{{ credit_request.request_number }}</h2>
+        <div>
+          <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to List
+          </a>
+        </div>
+      </div>
+      
+      <!-- Workflow Status Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Workflow Status</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="fw-bold">Current State:</label>
+                <div>
+                  <span class="badge bg-primary">{{ credit_request.workflow_state.name }}</span>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="fw-bold">Submitted By:</label>
+                <div>{{ credit_request.created_by.get_full_name }}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="fw-bold">Priority:</label>
+                <div>
+                  <span class="badge {% if credit_request.priority == 'High' %}bg-danger{% elif credit_request.priority == 'Medium' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                    {% if credit_request.priority == 'High' %}High Priority{% else %}{{ credit_request.priority }}{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="fw-bold">Request Number:</label>
+                <div>{{ credit_request.request_number }}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="fw-bold">Submission Date:</label>
+                <div>{{ credit_request.created_at|date:"F d, Y" }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Actions Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <a href="{% url 'creditrequest_wizard' %}?pk={{ credit_request.pk }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil-fill me-2"></i>Edit Request
+              </a>
+            </div>
+            
+            <div class="col-md-6">
+              <a href="{% url 'document_list' credit_request.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-text me-2"></i>Documents
+                {% with doc_count=credit_request.credit_documents.count %}
+                  {% if doc_count > 0 %}
+                  <span class="badge bg-primary rounded-pill">{{ doc_count }}</span>
+                  {% endif %}
+                {% endwith %}
+              </a>
+            </div>
+          </div>
+          
+          {% if credit_request.workflow_state.name == 'BUSINESS_SPONSORSHIP_PENDING' and request.user == credit_request.business_sponsor %}
+          <div class="row mt-3">
+            <div class="col-12">
+              <a href="{% url 'creditrequest_sponsor' credit_request.pk %}" class="btn btn-success w-100">
+                <i class="bi bi-check-circle me-2"></i>Provide Business Sponsorship Decision
+              </a>
+            </div>
+          </div>
+          {% endif %}
+          
+          {% get_available_transitions credit_request request.user as available_transitions %}
+          {% if available_transitions %}
+            <div class="mt-3">
+              <h6 class="fw-bold">Workflow Actions</h6>
+              <div class="row g-2">
+                {% for transition in available_transitions %}
+                  <div class="col-md-6">
+                    <form method="post" action="{% url 'transition_request' credit_request.id transition.to_state.id %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="action_name" value="{{ transition.name }}">
+                      
+                      {% if transition.is_draft_action %}
+                        <button type="submit" class="btn btn-outline-secondary w-100 text-start">
+                          <i class="bi bi-save me-2"></i> {{ transition.name }}
+                        </button>
+                      {% elif transition.name == "Cancel Credit Request" %}
+                        <button type="submit" class="btn btn-outline-danger w-100 text-start" 
+                                onclick="return confirm('Are you sure you want to cancel this credit request? This action cannot be undone.')">
+                          <i class="bi bi-x-circle me-2"></i> {{ transition.name }}
+                        </button>
+                      {% elif "Reject" in transition.name %}
+                        <button type="button" class="btn btn-outline-danger w-100 text-start" 
+                                data-bs-toggle="modal" data-bs-target="#rejectModal-{{ transition.id }}">
+                          <i class="bi bi-x-circle me-2"></i> {{ transition.name }}
+                        </button>
+                        
+                        <!-- Reject Modal -->
+                        <div class="modal fade" id="rejectModal-{{ transition.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">{{ transition.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <div class="mb-3">
+                                  <label for="rejection-reason" class="form-label">Rejection Reason</label>
+                                  <textarea class="form-control" name="comments" id="rejection-reason" rows="3" required></textarea>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {% elif "Approve" in transition.name %}
+                        <button type="submit" class="btn btn-success w-100 text-start">
+                          <i class="bi bi-check-circle me-2"></i> {{ transition.name }}
+                        </button>
+                      {% elif "Publish" in transition.name %}
+                        <button type="submit" class="btn btn-primary w-100 text-start">
+                          <i class="bi bi-arrow-up-circle me-2"></i> {{ transition.name }}
+                        </button>
+                      {% elif "Return" in transition.name %}
+                        <button type="button" class="btn btn-outline-warning w-100 text-start"
+                                data-bs-toggle="modal" data-bs-target="#returnModal-{{ transition.id }}">
+                          <i class="bi bi-arrow-return-left me-2"></i> {{ transition.name }}
+                        </button>
+                        
+                        <!-- Return Modal -->
+                        <div class="modal fade" id="returnModal-{{ transition.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">{{ transition.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <div class="mb-3">
+                                  <label for="return-reason" class="form-label">Reason for Return</label>
+                                  <textarea class="form-control" name="comments" id="return-reason" rows="3" required></textarea>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-warning">Confirm Return</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {% else %}
+                        <button type="submit" class="btn btn-primary w-100 text-start">
+                          <i class="bi bi-arrow-right-circle me-2"></i> {{ transition.name }}
+                        </button>
+                      {% endif %}
+                    </form>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Credit Review and Business Sponsorship -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Review and Business Sponsorship</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Credit Review Status -->
+            <div class="col-md-6 mb-3">
+              <div class="card h-100">
+                <div class="card-header bg-light">
+                  <h6 class="card-title mb-0">Credit Review Status</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="fw-bold">Review Status:</label>
+                      <div class="mt-1">
+                        <span class="badge bg-warning text-dark">In Progress</span>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <label class="fw-bold">Assigned Analyst:</label>
+                      <div class="mt-1">
+                        {% if credit_request.assigned_analyst %}
+                          {{ credit_request.assigned_analyst.get_full_name }}
+                        {% else %}
+                          <span class="text-muted">Not yet assigned</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                
+                    <div class="col-md-6">
+                      <label class="fw-bold">DA Level:</label>
+                      <div class="mt-1">
+                        {% if credit_request.da_level %}
+                          DA{{ credit_request.da_level }}
+                        {% else %}
+                          <span class="text-muted">Not yet determined</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <label class="fw-bold">Questionnaire Required:</label>
+                      <div class="mt-1">
+                        {% if credit_request.questionnaire_required %}
+                          <span class="badge bg-primary">Yes</span>
+                        {% else %}
+                          <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Business Sponsorship -->
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-header bg-light">
+                  <h6 class="card-title mb-0">Business Sponsorship</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="fw-bold">Sponsorship Status:</label>
+                      <div class="mt-1">
+                        <span class="badge bg-dark">Not Required Yet</span>
+                      </div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <label class="fw-bold">Primary Sponsor:</label>
+                      <div class="mt-1">
+                        {% if credit_request.business_sponsor %}
+                          {{ credit_request.business_sponsor.get_full_name }}
+                        {% else %}
+                          <span class="text-muted">Katarina Cvijovick</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Parallel Processes -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Parallel Processes</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Credit Analysis -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 border">
+                <div class="card-header bg-primary text-white">
+                  <h6 class="card-title mb-0">Credit Analysis</h6>
+                </div>
+                <div class="card-body">
+                  <span class="badge bg-secondary">Not Started</span>
+                  <p class="mt-2 mb-0">Awaiting business sponsor approval</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Legal Review -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 border">
+                <div class="card-header bg-primary text-white">
+                  <h6 class="card-title mb-0">Legal Review</h6>
+                </div>
+                <div class="card-body">
+                  <span class="badge bg-secondary">Not Started</span>
+                  <p class="mt-2 mb-0">Awaiting business sponsor approval</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Credit Questionnaire -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 border">
+                <div class="card-header bg-primary text-white">
+                  <h6 class="card-title mb-0">Credit Questionnaire</h6>
+                </div>
+                <div class="card-body">
+                  <span class="badge bg-info text-white">Not Required</span>
+                  <p class="mt-2 mb-0">Questionnaire is not required for this request</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Overall Completion Status -->
+          <div class="mt-3">
+            <h6 class="fw-bold">Overall Completion Status</h6>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+            <small class="text-muted">0 of 3 required processes completed</small>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Request Details -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Request Details</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Counterparty</label>
+              <div>Africa Resources (AR75319)</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Title</label>
+              <div>Goldfinger</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Status</label>
+              <div>
+                <span class="badge bg-primary">CREDIT_REVIEW</span>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Priority</label>
+              <div>
+                <span class="badge bg-danger">High</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Required By</label>
+              <div>2025-04-30</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Submitter</label>
+              <div>admin (Relationship Manager)</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Business Sponsor</label>
+              <div>cvijovick (Business Sponsor)</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Created</label>
+              <div>2025-04-27 07:14</div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <label class="fw-bold">Last Updated</label>
+              <div>2025-04-27 15:11</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Credit Limits -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Limits</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Limit Type</th>
+                  <th>Existing Amount</th>
+                  <th>Existing Tenor (months)</th>
+                  <th>Proposed Amount</th>
+                  <th>Proposed Tenor (months)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Initial Margin (IM)</td>
+                  <td>$1.00</td>
+                  <td>2</td>
+                  <td>$2.00</td>
+                  <td>6</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Client Information -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Client Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Revenue (Last 12m)</label>
+              <div>$1.00</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Projected Revenue</label>
+              <div>$2.00</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Projected RoRWA %</label>
+              <div>12.00%</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Country Risk Limit Confirmed</label>
+              <div>Yes</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">KYC Approval Status</label>
+              <div>Approved</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Senior Client Contact</label>
+              <div>Steve Smith</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Last Client Visit</label>
+              <div>2025-03-05</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Has Legal Opinion</label>
+              <div>No</div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold">Financial Statements Received</label>
+              <div>Yes</div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="fw-bold">Client Introduction Details</label>
+              <div>Eric intro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
+  <div class="sidebar-sticky">
+    <ul class="nav flex-column mb-2 mt-4">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-list me-2"></i>My Requests</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-2">{% if form.instance.pk %}Edit{% else %}New{% endif %} Credit Questionnaire</h2>
+    
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <!-- Credit Request Selection -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Credit Request Information</h5>
+                
+                <div class="row g-3">
+                    <!-- Credit Request -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
+                        {{ form.credit_request|add_class:'form-select' }}
+                        {% if form.credit_request.errors %}
+                            <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Select the credit request this questionnaire is for</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Counterparty's Business Model Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">COUNTERPARTY'S BUSINESS MODEL</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Basic details of the counterparty business model (i.e. what do they do, how do they generate revenue?)</label>
+                        <textarea class="form-control" rows="4" name="business_model_details" placeholder="Describe the counterparty's business model in detail"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Key suppliers and/or customers; typical terms of trade or credit provided to customers?</label>
+                        <textarea class="form-control" rows="4" name="key_suppliers_customers" placeholder="List key suppliers/customers and typical terms"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trading Activity / Rationale for Limits -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">TRADING ACTIVITY / RATIONALE FOR LIMITS</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What metals/products do they trade primarily (e.g. LME outrights, OTC averages, loco London gold)?</label>
+                        <textarea class="form-control" rows="3" name="metals_traded" placeholder="Detail the metals and products traded"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What is that trading flow driven by (e.g. hedging, inventory, OPs, their own clients' trading flows...)?</label>
+                        <textarea class="form-control" rows="3" name="trading_flow_drivers" placeholder="Explain what drives the trading flow"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What determines the size / type of positions taken?</label>
+                        <textarea class="form-control" rows="3" name="position_size_determinants" placeholder="Describe what determines position sizes"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Typical and maximum expected tenor of trades and/or hedges for each metal?</label>
+                        <textarea class="form-control" rows="3" name="expected_tenor" placeholder="Explain tenors for different metals"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Does the counterparty engage in strategic hedging or proprietary trading?</label>
+                        <textarea class="form-control" rows="3" name="strategic_hedging" placeholder="Describe any strategic or proprietary trading activities"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Policies and Governance -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">POLICIES AND GOVERNANCE</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Who determines trading / hedge policies (e.g. Board)?</label>
+                        <textarea class="form-control" rows="4" name="policy_determination" placeholder="Explain who sets trading and hedge policies"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hedge Effectiveness & Accounting -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">HEDGE EFFECTIVENESS & ACCOUNTING</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What is the volume / value of any material basis risk that the counterparty hedges?</label>
+                        <textarea class="form-control" rows="3" name="basis_risk_volume" placeholder="Detail the volume/value of material basis risk"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Is hedge accounting (IFRS 9 or ASC 815) applied to the metal hedges (i.e. cash flow or fair value hedges)?</label>
+                        <textarea class="form-control" rows="3" name="hedge_accounting" placeholder="Explain hedge accounting approach"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stress Testing -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">STRESS TESTING</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Does the counterparty run market stress tests? If so, how do the results inform how much cash/liquid assets they hold, or other risk management actions?</label>
+                        <textarea class="form-control" rows="4" name="stress_testing" placeholder="Describe stress testing approach and resulting actions"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Who sets/governs the stress / VAR levels? What are the stress assumptions?</label>
+                        <textarea class="form-control" rows="3" name="stress_governance" placeholder="Explain who governs stress/VAR levels and assumptions used"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notional Positions -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">NOTIONAL POSITIONS</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What notional value do the requested IMPL or PFE lines give rise to at current prices / margin rates?</label>
+                        <textarea class="form-control" rows="3" name="notional_value" placeholder="State notional values at current rates"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Approximately what proportion of their total metals trading or hedge book could ICBCS account for?</label>
+                        <textarea class="form-control" rows="3" name="icbcs_proportion" placeholder="Estimate ICBCS proportion of total trading book"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Including limits at other banks or brokers, what total size of position in oz / tonnes and USD can they run?</label>
+                        <textarea class="form-control" rows="3" name="total_position_size" placeholder="Detail total position size across all counterparties"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Does that make sense in context of their underlying business?</label>
+                        <textarea class="form-control" rows="3" name="business_context" placeholder="Explain if position sizes align with business needs"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Liquidity Management -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">LIQUIDITY MANAGEMENT</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">How many other counterparties does the client use, what are their total available credit lines?</label>
+                        <textarea class="form-control" rows="3" name="other_counterparties" placeholder="List other counterparties and available credit lines"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">What available cash and banking lines (committed & uncommitted) does the client have available? How much is unutilized?</label>
+                        <textarea class="form-control" rows="3" name="available_lines" placeholder="Detail cash and banking lines available"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">For groups with multiple entities, is treasury and liquidity managed centrally or at an entity level?</label>
+                        <textarea class="form-control" rows="3" name="treasury_management" placeholder="Describe treasury management approach"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Where is USD cash available for margin calls held and managed from?</label>
+                        <textarea class="form-control" rows="3" name="usd_cash_management" placeholder="Explain where and how USD cash is managed"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">For entities reliant on an onshore China parent, give details of USD cash pools / terms / restrictions</label>
+                        <textarea class="form-control" rows="3" name="china_parent_details" placeholder="Detail USD cash pools for China parent entities"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Are all hedging facilities subject to margining or are unmargined OTC lines also provided?</label>
+                        <textarea class="form-control" rows="3" name="margining_details" placeholder="Explain margining requirements for hedging facilities"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Physical Positions -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">PHYSICAL POSITIONS</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Size ($ and equivalent volume) of ICBCS Repo line (BM) or Availability / Allocated Financing lines (PM)</label>
+                        <textarea class="form-control" rows="3" name="repo_line_size" placeholder="Detail size of ICBCS lines"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Size ($ and volume) of client's total metal financing lines with all counterparties</label>
+                        <textarea class="form-control" rows="3" name="total_financing_lines" placeholder="List total metal financing lines across all counterparties"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">How / on what basis does client and ICBCS manage hedging of the metal financed under repo?</label>
+                        <textarea class="form-control" rows="3" name="hedging_basis" placeholder="Explain hedging approach for metal under repo"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Metal, material grade (e.g. G1-G4, LGD) and financing locos (inc. in-transit)</label>
+                        <textarea class="form-control" rows="3" name="metal_details" placeholder="Detail metal grades and financing locations"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Size of exit risk limits in place and assumed exit tenor?</label>
+                        <textarea class="form-control" rows="3" name="exit_risk_limits" placeholder="Describe exit risk limits and tenor"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Any other secured trade finance used by client?</label>
+                        <textarea class="form-control" rows="3" name="other_trade_finance" placeholder="List any other secured trade finance"></textarea>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-bold">Balance sheet treatment of repos (i.e. on-balance sheet secured financing or off-balance sheet)?</label>
+                        <textarea class="form-control" rows="3" name="balance_sheet_treatment" placeholder="Explain balance sheet treatment of repos"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Textarea (Hidden) -->
+        <div class="d-none">
+            {{ form.content|add_class:'form-control' }}
+            {% if form.content.errors %}
+                <div class="invalid-feedback d-block">{{ form.content.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <input type="hidden" name="author" value="{{ request.user.pk }}">
+        
+        <div class="d-flex justify-content-end">
+            <button type="submit" name="save_draft" class="btn btn-secondary me-2">Save as Draft</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// JavaScript to compile all detailed fields into the main content field on form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get all the section textareas
+        const sections = [
+            { title: 'COUNTERPARTY\'S BUSINESS MODEL', fields: ['business_model_details', 'key_suppliers_customers'] },
+            { title: 'TRADING ACTIVITY / RATIONALE FOR LIMITS', fields: ['metals_traded', 'trading_flow_drivers', 'position_size_determinants', 'expected_tenor', 'strategic_hedging'] },
+            { title: 'POLICIES AND GOVERNANCE', fields: ['policy_determination'] },
+            { title: 'HEDGE EFFECTIVENESS & ACCOUNTING', fields: ['basis_risk_volume', 'hedge_accounting'] },
+            { title: 'STRESS TESTING', fields: ['stress_testing', 'stress_governance'] },
+            { title: 'NOTIONAL POSITIONS', fields: ['notional_value', 'icbcs_proportion', 'total_position_size', 'business_context'] },
+            { title: 'LIQUIDITY MANAGEMENT', fields: ['other_counterparties', 'available_lines', 'treasury_management', 'usd_cash_management', 'china_parent_details', 'margining_details'] },
+            { title: 'PHYSICAL POSITIONS', fields: ['repo_line_size', 'total_financing_lines', 'hedging_basis', 'metal_details', 'exit_risk_limits', 'other_trade_finance', 'balance_sheet_treatment'] }
+        ];
+        
+        // Build the content
+        let content = '';
+        sections.forEach(section => {
+            content += `## ${section.title}\n\n`;
+            
+            section.fields.forEach(fieldName => {
+                const field = document.querySelector(`[name="${fieldName}"]`);
+                if (field && field.value) {
+                    const label = field.closest('.mb-3').querySelector('.form-label').textContent.trim();
+                    content += `### ${label}\n${field.value}\n\n`;
+                }
+            });
+            
+            content += '\n';
+        });
+        
+        // Set the compiled content to the main content field
+        document.querySelector('[name="content"]').value = content;
+        
+        // Submit the form
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

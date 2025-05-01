@@ -1,0 +1,20 @@
+{% extends 'credit_workflow/base.html' %}
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<h2>Credit Request Submitted</h2>
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="card-title">Request Number: {{ credit_request.request_number }}</h5>
+    <p class="card-text"><strong>Counterparty:</strong> {{ credit_request.counterparty.name }}</p>
+    <p class="card-text"><strong>CIF ID:</strong> {{ credit_request.counterparty.cif_id }}</p>
+    <p class="card-text"><strong>Priority:</strong> {{ credit_request.priority }}</p>
+    <p class="card-text"><strong>Required By Date:</strong> {{ credit_request.required_by_date }}</p>
+    <p class="card-text"><strong>Business Sponsor:</strong> {{ credit_request.business_sponsor }}</p>
+    <!-- Add more fields as needed -->
+  </div>
+</div>
+<a href="{% url 'welcome' %}" class="btn btn-primary mt-3">Back to Dashboard</a>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "credit_workflow/base.html" %}
+{% load static %}
+{% load workflow_tags %}
+
+{% block title %}Dashboard - Credit Risk Workflow{% endblock %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Dashboard</h2>
+      <p class="text-muted">View and manage credit limit applications</p>
+    </div>
+    <div>
+      <a href="{% url 'creditrequest_wizard' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> New Credit Limit Application
+      </a>
+    </div>
+  </div>
+
+  <!-- Search and Filter Panel -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" action="{% url 'creditrequest_list' %}">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <label for="searchQuery" class="form-label">Search</label>
+            <input type="text" class="form-control" id="searchQuery" name="q" value="{{ search_query }}" placeholder="Search by ID, counterparty or title">
+          </div>
+          <div class="col-md-3">
+            <label for="statusFilter" class="form-label">Status</label>
+            <select class="form-select" id="statusFilter" name="state">
+              <option value="">All Statuses</option>
+              {% for state in workflow_states %}
+                <option value="{{ state.id }}" {% if state_filter == state.id %}selected{% endif %}>{{ state.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="priorityFilter" class="form-label">Priority</label>
+            <select class="form-select" id="priorityFilter" name="priority">
+              <option value="">All Priorities</option>
+              <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+              <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+            </select>
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+              Filter
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Credit Limit Applications -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">Credit Limit Applications</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Request ID</th>
+              <th>Counterparty</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Assignee</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for request in recent_requests %}
+            <tr>
+              <td>{{ request.request_number }}</td>
+              <td>{{ request.counterparty.name }}</td>
+              <td>{{ request.title|default:"Credit Limit Request" }}</td>
+              <td>{% workflow_state_badge request.workflow_state %}</td>
+              <td>
+                <span class="badge {% if request.priority == 'High' %}bg-danger{% elif request.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                  {{ request.priority }}
+                </span>
+              </td>
+              <td>
+                {% if request.assigned_analyst %}
+                  {{ request.assigned_analyst.get_full_name }}
+                {% else %}
+                  <span class="text-muted">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>{{ request.created_at|date:"Y-m-d" }}</td>
+              <td>
+                <a href="{% url 'creditrequest_detail' request.id %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye"></i> View
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-4">
+                <p class="text-muted mb-0">No credit requests found</p>
+                <a href="{% url 'creditrequest_wizard' %}" class="btn btn-sm btn-primary mt-3">
+                  <i class="bi bi-plus-circle me-1"></i> Create Request
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if recent_requests and recent_requests.count > 10 %}
+    <div class="card-footer text-center">
+      <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-primary">View All Requests</a>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Workflow State Summary -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Workflow State Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="workflow-state-summary">
+            <div class="row">
+              {% for state in workflow_states %}
+                <div class="col-md-3 col-sm-6 mb-3">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{% workflow_state_badge state %}</h6>
+                        <span class="badge bg-secondary rounded-pill">{{ state.request_count|default:"0" }}</span>
+                      </div>
+                      <div class="mt-3">
+                        <a href="{% url 'creditrequest_list' %}?state={{ state.id }}" class="btn btn-sm btn-outline-primary w-100">View Requests</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Quick Stats -->
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light mb-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Total Requests</h6>
+          <h3 class="mb-0">{{ total_requests|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light mb-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Pending Approval</h6>
+          <h3 class="mb-0">{{ pending_approval_count|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light mb-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Awaiting Sponsorship</h6>
+          <h3 class="mb-0">{{ awaiting_sponsorship_count|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light mb-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Completed This Month</h6>
+          <h3 class="mb-0">{{ completed_this_month|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

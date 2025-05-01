@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}New Credit Limit Application - Basic Information{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>New Credit Limit Application</h2>
+        <p class="text-muted">Step 1: Basic Information</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'credit_workflow:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="multi-step-progress mb-4">
+    <div class="step active">
+        <div class="circle">1</div>
+        <div class="label">Basic Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">2</div>
+        <div class="label">Limit Requests</div>
+    </div>
+    <div class="step">
+        <div class="circle">3</div>
+        <div class="label">Relationship Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">4</div>
+        <div class="label">Business Justification</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Basic Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.counterparty.id_for_label }}" class="form-label">Counterparty</label>
+                {{ form.counterparty }}
+                {% if form.counterparty.errors %}
+                    <div class="text-danger small mt-1">{{ form.counterparty.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Request Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <div>
+                    {% for radio in form.priority %}
+                        <div class="form-check form-check-inline">
+                            {{ radio.tag }}
+                            <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.priority.errors %}
+                    <div class="text-danger small mt-1">{{ form.priority.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.required_by_date.id_for_label }}" class="form-label">Required By Date</label>
+                {{ form.required_by_date }}
+                {% if form.required_by_date.errors %}
+                    <div class="text-danger small mt-1">{{ form.required_by_date.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.priority_justification.id_for_label }}" class="form-label">Priority Justification</label>
+                {{ form.priority_justification }}
+                <div class="form-text">Justification is required for high priority requests.</div>
+                {% if form.priority_justification.errors %}
+                    <div class="text-danger small mt-1">{{ form.priority_justification.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show/hide priority justification based on priority selection
+    $(document).ready(function() {
+        // Function to toggle priority justification visibility
+        function togglePriorityJustification() {
+            var priorityValue = $('input[name="priority"]:checked').val();
+            var justificationField = $('#{{ form.priority_justification.id_for_label }}').closest('.mb-3');
+            
+            if (priorityValue === 'high') {
+                justificationField.show();
+            } else {
+                justificationField.hide();
+            }
+        }
+        
+        // Initial check
+        togglePriorityJustification();
+        
+        // On change event
+        $('input[name="priority"]').change(function() {
+            togglePriorityJustification();
+        });
+    });
+</script>
+{% endblock %}

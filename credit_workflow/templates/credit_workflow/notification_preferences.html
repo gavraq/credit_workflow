@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
+  <div class="sidebar-sticky">
+    <ul class="nav flex-column mb-2 mt-4">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_list' %}"><i class="fas fa-list me-2"></i>My Requests</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">Notifications</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_center' %}active{% endif %}" href="{% url 'notification_center' %}"><i class="fas fa-bell me-2"></i>Notification Center</a></li>
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_preferences' %}active{% endif %}" href="{% url 'notification_preferences' %}"><i class="fas fa-cog me-2"></i>Preferences</a></li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Notification Preferences</h2>
+    <a href="{% url 'notification_center' %}" class="btn btn-outline-primary"><i class="fas fa-bell me-2"></i>Back to Notifications</a>
+  </div>
+  
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p class="text-muted mb-4">Configure which types of notifications you want to receive in the application.</p>
+      
+      <form method="post">
+        {% csrf_token %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Notification Type</th>
+                <th class="text-center">Enabled</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pref in form.instance.user.credit_notification_preferences.all %}
+              <tr>
+                <td>
+                  {% if pref.type == 'workflow' %}
+                  <span class="badge bg-primary">{{ pref.get_type_display }}</span>
+                  {% elif pref.type == 'document' %}
+                  <span class="badge bg-success">{{ pref.get_type_display }}</span>
+                  {% elif pref.type == 'reminder' %}
+                  <span class="badge bg-warning text-dark">{{ pref.get_type_display }}</span>
+                  {% else %}
+                  <span class="badge bg-secondary">{{ pref.get_type_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="form-check form-switch d-flex justify-content-center">
+                    <input class="form-check-input" type="checkbox" name="enabled_{{ pref.pk }}" value="1" {% if pref.enabled %}checked{% endif %}>
+                  </div>
+                </td>
+                <td>
+                  {% if pref.type == 'workflow' %}
+                  Notifications about workflow state changes and approvals.
+                  {% elif pref.type == 'document' %}
+                  Notifications about document uploads and changes.
+                  {% elif pref.type == 'reminder' %}
+                  Reminder notifications for tasks and deadlines.
+                  {% else %}
+                  General application notifications.
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-4">
+          <button type="submit" class="btn btn-primary">Save Preferences</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="card shadow-sm mt-4">
+    <div class="card-header bg-light">
+      <h5 class="card-title mb-0">About Notifications</h5>
+    </div>
+    <div class="card-body">
+      <p class="mb-0">Notifications help you stay updated on important events in the credit workflow process. You can view all your notifications in the <a href="{% url 'notification_center' %}">Notification Center</a>.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

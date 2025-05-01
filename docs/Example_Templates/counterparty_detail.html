@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ counterparty.name }} - Counterparty Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ counterparty.name }}</h2>
+        <p class="text-muted">Counterparty Details</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'credit_workflow:counterparty_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <a href="{% url 'credit_workflow:counterparty_update' pk=counterparty.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+    </div>
+</div>
+
+<!-- Counterparty Details -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Basic Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Name:</strong> {{ counterparty.name }}</p>
+                <p><strong>CIF Number:</strong> {{ counterparty.cif_number }}</p>
+                <p><strong>Country:</strong> {{ counterparty.country }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Created:</strong> {{ counterparty.created_at|date:"F j, Y, g:i a" }}</p>
+                <p><strong>Last Updated:</strong> {{ counterparty.updated_at|date:"F j, Y, g:i a" }}</p>
+            </div>
+        </div>
+        
+        {% if counterparty.business_description %}
+            <h6 class="mt-3">Business Description</h6>
+            <p>{{ counterparty.business_description|linebreaks }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Associated Credit Requests -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Credit Requests</h5>
+        <a href="{% url 'credit_workflow:create_credit_request' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-plus"></i> New Request
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if credit_requests %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Assignee</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in credit_requests %}
+                            <tr>
+                                <td>{{ request.request_id }}</td>
+                                <td>{{ request.title }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ request.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge priority-{{ request.priority }}">
+                                        {{ request.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td>{{ request.current_assignee.get_full_name }}</td>
+                                <td>{{ request.created_at|date:"Y-m-d" }}</td>
+                                <td>
+                                    <a href="{% url 'credit_workflow:credit_request_detail' pk=request.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info m-4">
+                <i class="fas fa-info-circle"></i> No credit requests found for this counterparty.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

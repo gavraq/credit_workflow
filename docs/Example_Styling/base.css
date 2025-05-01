@@ -1,0 +1,213 @@
+/* Base styles */
+:root {
+    --icbc-red: #e31937;
+    --standard-blue: #0c4da2;
+    --text-color: #333333;
+    --light-gray: #f5f5f5;
+    --dark-gray: #666666;
+    --white: #ffffff;
+    --font-primary: 'Arial', 'Helvetica', sans-serif;
+    --header-height: 56px;
+    --sidebar-width: 250px;
+    --sidebar-width-tablet: 200px;
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background-color: var(--light-gray);
+    font-family: var(--font-primary);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: var(--header-height);
+}
+
+/* Navbar styles */
+.navbar {
+    background-color: var(--standard-blue);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: var(--header-height);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+/* Main container */
+.main-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+    min-height: calc(100vh - var(--header-height));
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--standard-blue);
+    position: fixed;
+    top: var(--header-height);
+    bottom: 0;
+    left: 0;
+    z-index: 1020;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-content {
+    padding: 1rem 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sidebar-link {
+    padding: 0.75rem 1.25rem;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--icbc-red);
+    color: var(--white);
+    text-decoration: none;
+}
+
+.sidebar-link i {
+    width: 20px;
+    margin-right: 8px;
+    text-align: center;
+}
+
+.sidebar-heading {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    letter-spacing: 0.05em;
+}
+
+/* Main content area */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    width: calc(100% - var(--sidebar-width));
+    min-height: calc(100vh - var(--header-height));
+    background-color: var(--light-gray);
+    position: relative;
+}
+
+/* Card styles */
+.card {
+    background-color: var(--white);
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.card-header {
+    background-color: var(--white);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Table styles */
+.table-responsive {
+    margin-bottom: 0;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.table th {
+    background-color: var(--light-gray);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* Messages */
+.messages {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+}
+
+/* Utility classes */
+.bg-primary {
+    background-color: var(--standard-blue) !important;
+}
+
+.bg-danger {
+    background-color: var(--icbc-red) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    :root {
+        --sidebar-width: var(--sidebar-width-tablet);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .navbar-toggler {
+        display: block;
+    }
+}

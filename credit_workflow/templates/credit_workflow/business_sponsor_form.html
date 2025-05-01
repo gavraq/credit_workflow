@@ -1,0 +1,184 @@
+{% extends 'credit_workflow/base.html' %}
+{% load workflow_tags %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Main content area -->
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Business Sponsorship Review</h2>
+        <div>
+          <a href="{% url 'creditrequest_detail' object.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Credit Request
+          </a>
+        </div>
+      </div>
+
+      <!-- Credit Request Summary Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Request Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Request Number:</strong> {{ object.request_number }}</div>
+            <div class="col-md-4 mb-2"><strong>Counterparty:</strong> {{ object.counterparty }}</div>
+            <div class="col-md-4 mb-2"><strong>Status:</strong> <span class="badge bg-primary">{{ object.workflow_state.name }}</span></div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Submitter:</strong> {{ object.submitter }}</div>
+            <div class="col-md-4 mb-2"><strong>Primary Sponsor:</strong> {{ object.business_sponsor }}</div>
+            <div class="col-md-4 mb-2">
+              <strong>Priority:</strong>
+              <span class="badge {% if object.priority == 'High' %}bg-danger{% elif object.priority == 'Medium' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                {{ object.priority }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Required By:</strong> {{ object.required_by_date }}</div>
+            <div class="col-md-4 mb-2"><strong>Revenue (Last 12m):</strong> ${{ object.revenue_last_12m|floatformat:2 }}</div>
+            <div class="col-md-4 mb-2"><strong>Projected Revenue:</strong> ${{ object.projected_revenue|floatformat:2 }}</div>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-4 mb-2"><strong>Projected RoRWA %:</strong> {{ object.projected_rorwa_percentage|floatformat:2 }}%</div>
+            <div class="col-md-4 mb-2"><strong>Country Risk Confirmed:</strong> {{ object.country_risk_limit_confirmed|yesno:"Yes,No" }}</div>
+            <div class="col-md-4 mb-2"><strong>KYC Approval Status:</strong> {{ object.kyc_approval_status }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit Limits Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Credit Limits</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Limit Type</th>
+                  <th>Existing Amount</th>
+                  <th>Existing Tenor (months)</th>
+                  <th>Proposed Amount</th>
+                  <th>Proposed Tenor (months)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for limit in object.limits.all %}
+                <tr>
+                  <td>{{ limit.limit_type.name }}</td>
+                  <td>${{ limit.existing_limit_amount|floatformat:2|default:"0.00" }}</td>
+                  <td>{{ limit.existing_tenor_months|default:"0" }}</td>
+                  <td>${{ limit.proposed_limit_amount|floatformat:2 }}</td>
+                  <td>{{ limit.proposed_tenor_months }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center">No credit limits defined</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Business Sponsorship Form -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">Business Sponsorship Decision</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <label class="form-label">Request Justification</label>
+              <div class="p-3 bg-light rounded">{{ object.priority_justification|linebreaks|default:"No justification provided." }}</div>
+            </div>
+            
+            <div class="mb-4">
+              <label for="sponsor_comments" class="form-label required">Sponsorship Comments</label>
+              <textarea name="sponsor_comments" id="sponsor_comments" class="form-control" rows="5" required></textarea>
+              <div class="form-text">Please provide your assessment of the business case and rationale for your decision.</div>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label required">Business Sponsorship Decision</label>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="sponsor_decision" id="approve" value="approve" required>
+                <label class="form-check-label" for="approve">Approve</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="sponsor_decision" id="reject" value="reject" required>
+                <label class="form-check-label" for="reject">Reject</label>
+              </div>
+            </div>
+            
+            <div class="mb-4" id="rejection_reason_container" style="display: none;">
+              <label for="rejection_reason" class="form-label required">Rejection Reason</label>
+              <select name="rejection_reason" id="rejection_reason" class="form-select">
+                <option value="">Select a reason</option>
+                <option value="insufficient_revenue">Insufficient Revenue</option>
+                <option value="high_risk">High Risk Profile</option>
+                <option value="outside_strategy">Outside Strategic Objectives</option>
+                <option value="pending_business_changes">Pending Business Changes</option>
+                <option value="other">Other (please specify in comments)</option>
+              </select>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+              <i class="bi bi-info-circle me-2"></i> Business Sponsorship is a critical step in the credit workflow. Your approval allows the request to proceed to Credit Analysis, Legal Review, and Credit Questionnaire (if required). Rejecting the request will terminate the workflow.
+            </div>
+            
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% url 'creditrequest_detail' object.id %}" class="btn btn-outline-secondary me-2">Cancel</a>
+              <button type="submit" class="btn btn-primary" id="submit_btn">Submit Decision</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle rejection reason display
+    const approveRadio = document.getElementById('approve');
+    const rejectRadio = document.getElementById('reject');
+    const rejectionContainer = document.getElementById('rejection_reason_container');
+    const rejectionSelect = document.getElementById('rejection_reason');
+    const submitBtn = document.getElementById('submit_btn');
+    
+    approveRadio.addEventListener('change', function() {
+      rejectionContainer.style.display = 'none';
+      rejectionSelect.required = false;
+      submitBtn.textContent = 'Approve Request';
+      submitBtn.classList.remove('btn-danger');
+      submitBtn.classList.add('btn-success');
+    });
+    
+    rejectRadio.addEventListener('change', function() {
+      rejectionContainer.style.display = 'block';
+      rejectionSelect.required = true;
+      submitBtn.textContent = 'Reject Request';
+      submitBtn.classList.remove('btn-success');
+      submitBtn.classList.add('btn-danger');
+    });
+  });
+</script>
+{% endblock %}
+{% endblock %}

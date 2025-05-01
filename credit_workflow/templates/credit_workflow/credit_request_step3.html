@@ -1,0 +1,171 @@
+{% extends 'credit_workflow/base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">{% if mode == 'edit' %}Edit{% else %}New{% endif %} Credit Request</h2>
+            <p class="text-muted">{% if mode == 'edit' %}Update the details for credit request #{{ credit_request.request_number }}{% else %}Complete all fields to create a new credit request{% endif %}</p>
+        </div>
+        <div>
+            <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold">Step 3: Relationship Information</span>
+            <span class="text-muted">3 / 4</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+        </div>
+    </div>
+    
+    <form method="post" id="relationship-form" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Relationship Information</h5>
+            </div>
+            <div class="card-body">
+                
+                <div class="row g-3">
+                    <!-- Client Introduction -->
+                    <div class="col-12">
+                        <label for="{{ wizard.form.client_introduction_details.id_for_label }}" class="form-label">Client Introduction</label>
+                        {{ wizard.form.client_introduction_details|add_class:'form-control'|attr:'rows:4'|attr:'placeholder:Provide a brief introduction to the client and their business.' }}
+                        {% if wizard.form.client_introduction_details.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.client_introduction_details.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Include key information about the client's business, history, and relationship with our institution.</small>
+                    </div>
+                    
+                    <!-- KYC Approval Status as dropdown -->
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.kyc_approval_status.id_for_label }}" class="form-label">KYC Approval Status</label>
+                        {{ wizard.form.kyc_approval_status|add_class:'form-select' }}
+                        {% if wizard.form.kyc_approval_status.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.kyc_approval_status.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.senior_client_contact.id_for_label }}" class="form-label">Senior Client Contact</label>
+                        {{ wizard.form.senior_client_contact|add_class:'form-control'|attr:'placeholder:Name and position' }}
+                        {% if wizard.form.senior_client_contact.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.senior_client_contact.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.last_client_visit_date.id_for_label }}" class="form-label">Last Client Visit Date</label>
+                        {{ wizard.form.last_client_visit_date|add_class:'form-control'|attr:'type:date' }}
+                        {% if wizard.form.last_client_visit_date.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.last_client_visit_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Financial Information Section -->
+                <hr class="my-4">
+                <h5 class="card-subtitle mb-3">Financial Information</h5>
+                
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.revenue_last_12m.id_for_label }}" class="form-label">Revenue (Last 12 Months)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ wizard.form.revenue_last_12m|add_class:'form-control'|attr:'placeholder:0.00'|attr:'step:0.01' }}
+                        </div>
+                        {% if wizard.form.revenue_last_12m.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.revenue_last_12m.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Enter value in millions</small>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.projected_revenue.id_for_label }}" class="form-label">Projected Revenue</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ wizard.form.projected_revenue|add_class:'form-control'|attr:'placeholder:0.00'|attr:'step:0.01' }}
+                        </div>
+                        {% if wizard.form.projected_revenue.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.projected_revenue.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Enter value in millions</small>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ wizard.form.projected_rorwa_percentage.id_for_label }}" class="form-label">Projected RoRWA (%)</label>
+                        <div class="input-group">
+                            {{ wizard.form.projected_rorwa_percentage|add_class:'form-control'|attr:'placeholder:0.00'|attr:'step:0.01' }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        {% if wizard.form.projected_rorwa_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.projected_rorwa_percentage.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Return on Risk-Weighted Assets</small>
+                    </div>
+                </div>
+                
+                <!-- Legal/Financial Documentation Section -->
+                <h5 class="card-subtitle mb-3 mt-4">Legal & Financial Documentation</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-2">
+                            {{ wizard.form.has_legal_opinion|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ wizard.form.has_legal_opinion.id_for_label }}">
+                                Has Legal Opinion
+                            </label>
+                            {% if wizard.form.has_legal_opinion.errors %}
+                                <div class="invalid-feedback d-block">{{ wizard.form.has_legal_opinion.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-2">
+                            {{ wizard.form.financial_statements_received|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ wizard.form.financial_statements_received.id_for_label }}">
+                                Financial Statements Received
+                            </label>
+                            {% if wizard.form.financial_statements_received.errors %}
+                                <div class="invalid-feedback d-block">{{ wizard.form.financial_statements_received.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="{{ wizard.form.interim_financials_info.id_for_label }}" class="form-label">Interim Financials Information</label>
+                        {{ wizard.form.interim_financials_info|add_class:'form-control'|attr:'rows:3'|attr:'placeholder:Provide details about the interim financial statements (frequency, last received, etc.)' }}
+                        {% if wizard.form.interim_financials_info.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.interim_financials_info.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">If available, provide details about interim financial statements</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-4">
+                    <i class="bi bi-info-circle me-2"></i> The relationship information helps us understand your business relationship with the counterparty and evaluate the financial aspects of the credit request.
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <button type="submit" name="wizard_goto_step" value="step2" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i> Previous</button>
+            <button type="submit" class="btn btn-primary">Next <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}

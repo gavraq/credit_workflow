@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}New Credit Request - Relationship Information{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>New Credit Request</h2>
+        <p class="text-muted">Step 3: Relationship Information</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'credit_workflow:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="multi-step-progress mb-4">
+    <div class="step completed">
+        <div class="circle">1</div>
+        <div class="label">Basic Information</div>
+    </div>
+    <div class="step completed">
+        <div class="circle">2</div>
+        <div class="label">Limit Requests</div>
+    </div>
+    <div class="step active">
+        <div class="circle">3</div>
+        <div class="label">Relationship Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">4</div>
+        <div class="label">Business Justification</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Relationship Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.client_introduction.id_for_label }}" class="form-label">Client Introduction</label>
+                {{ form.client_introduction }}
+                <div class="form-text">Provide a brief introduction to the client and their business.</div>
+                {% if form.client_introduction.errors %}
+                    <div class="text-danger small mt-1">{{ form.client_introduction.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.kyc_approved }}
+                    <label class="form-check-label" for="{{ form.kyc_approved.id_for_label }}">
+                        KYC Approved
+                    </label>
+                </div>
+                {% if form.kyc_approved.errors %}
+                    <div class="text-danger small mt-1">{{ form.kyc_approved.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.senior_client_contact.id_for_label }}" class="form-label">Senior Client Contact</label>
+                {{ form.senior_client_contact }}
+                {% if form.senior_client_contact.errors %}
+                    <div class="text-danger small mt-1">{{ form.senior_client_contact.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.last_client_visit_date.id_for_label }}" class="form-label">Last Client Visit Date</label>
+                {{ form.last_client_visit_date }}
+                {% if form.last_client_visit_date.errors %}
+                    <div class="text-danger small mt-1">{{ form.last_client_visit_date.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <h5 class="mt-4 mb-3">Financial Information</h5>
+            
+            <div class="mb-3">
+                <label for="{{ form.existing_revenue.id_for_label }}" class="form-label">Existing Revenue (in millions)</label>
+                {{ form.existing_revenue }}
+                {% if form.existing_revenue.errors %}
+                    <div class="text-danger small mt-1">{{ form.existing_revenue.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.projected_revenue.id_for_label }}" class="form-label">Projected Revenue (in millions)</label>
+                {{ form.projected_revenue }}
+                {% if form.projected_revenue.errors %}
+                    <div class="text-danger small mt-1">{{ form.projected_revenue.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.projected_rorwa_percentage.id_for_label }}" class="form-label">Projected RORWA (%)</label>
+                {{ form.projected_rorwa_percentage }}
+                {% if form.projected_rorwa_percentage.errors %}
+                    <div class="text-danger small mt-1">{{ form.projected_rorwa_percentage.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="{% url 'credit_workflow:create_credit_request' step=2 %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

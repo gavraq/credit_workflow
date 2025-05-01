@@ -11,6 +11,9 @@ The Credit Risk Workflow system is a modular Django application designed for sca
 - **User Authentication**: Django’s built-in auth system.
 - **Database**: PostgreSQL for data storage.
 - **Static & Media Files**: Managed via Django’s static/media settings.
+- **API Layer**: RESTful API built with Django REST Framework for programmatic access.
+- **PDF Service**: Service layer for generating and attaching PDF documents.
+- **Notification System**: Modular notification models and delivery tracking.
 
 ## Architecture Diagram
 

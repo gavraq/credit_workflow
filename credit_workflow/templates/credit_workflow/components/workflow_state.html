@@ -1,0 +1,71 @@
+{% load workflow_tags %}
+{% comment %}
+  Component for displaying workflow state information.
+  Parameters:
+  - credit_request: The credit request object
+{% endcomment %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-light">
+    <h5 class="card-title mb-0">Workflow Status</h5>
+  </div>
+  <div class="card-body">
+    <div class="d-flex flex-column">
+      <div class="mb-3">
+        <label class="fw-bold">Current State:</label>
+        <div class="mt-1">
+          {% workflow_state_badge credit_request.workflow_state %}
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label class="fw-bold">Request Number:</label>
+        <div>{{ credit_request.request_number }}</div>
+      </div>
+      
+      <div class="mb-3">
+        <label class="fw-bold">Submitted By:</label>
+        <div>{{ credit_request.submitter.get_full_name }}</div>
+      </div>
+      
+      <div class="mb-3">
+        <label class="fw-bold">Submission Date:</label>
+        <div>{{ credit_request.submitted_at|date:"F j, Y" }}</div>
+      </div>
+      
+      {% if credit_request.assigned_analyst %}
+      <div class="mb-3">
+        <label class="fw-bold">Assigned Analyst:</label>
+        <div>{{ credit_request.assigned_analyst.get_full_name }}</div>
+      </div>
+      {% endif %}
+      
+      {% if credit_request.da_level %}
+      <div class="mb-3">
+        <label class="fw-bold">DA Level:</label>
+        <div>DA{{ credit_request.da_level }}</div>
+      </div>
+      {% endif %}
+      
+      {% if credit_request.completed_at %}
+      <div class="mb-3">
+        <label class="fw-bold">Completion Date:</label>
+        <div>{{ credit_request.completed_at|date:"F j, Y" }}</div>
+      </div>
+      {% endif %}
+      
+      <div class="mb-3">
+        <label class="fw-bold">Priority:</label>
+        <div>
+          {% if credit_request.priority == "High" %}
+            <span class="badge bg-danger">High Priority</span>
+          {% elif credit_request.priority == "Medium" %}
+            <span class="badge bg-warning text-dark">Medium Priority</span>
+          {% else %}
+            <span class="badge bg-success">Low Priority</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

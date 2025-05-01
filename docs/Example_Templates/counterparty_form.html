@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if form.instance.id %}
+        Edit Counterparty - {{ form.instance.name }}
+    {% else %}
+        New Counterparty
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>
+            {% if form.instance.id %}
+                Edit Counterparty
+            {% else %}
+                New Counterparty
+            {% endif %}
+        </h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'credit_workflow:counterparty_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Counterparty Information</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.cif_number.id_for_label }}" class="form-label">CIF Number</label>
+                {{ form.cif_number }}
+                {% if form.cif_number.errors %}
+                    <div class="text-danger small mt-1">{{ form.cif_number.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+                {{ form.country }}
+                {% if form.country.errors %}
+                    <div class="text-danger small mt-1">{{ form.country.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.business_description.id_for_label }}" class="form-label">Business Description</label>
+                {{ form.business_description }}
+                {% if form.business_description.errors %}
+                    <div class="text-danger small mt-1">{{ form.business_description.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> 
+                    {% if form.instance.id %}
+                        Update Counterparty
+                    {% else %}
+                        Create Counterparty
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'credit_workflow/base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">{% if mode == 'edit' %}Edit{% else %}New{% endif %} Credit Request</h2>
+            <p class="text-muted">{% if mode == 'edit' %}Update the details for credit request #{{ credit_request.request_number }}{% else %}Complete all fields to create a new credit request{% endif %}</p>
+        </div>
+        <div>
+            <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold">Step 1: Basic Information</span>
+            <span class="text-muted">1 / 4</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 25%"></div>
+        </div>
+    </div>
+    
+    <form method="post" id="basic-form" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Basic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Counterparty -->
+                    <div class="col-md-6">
+                        <label for="{{ wizard.form.counterparty.id_for_label }}" class="form-label">Counterparty</label>
+                        {{ wizard.form.counterparty|add_class:'form-select'|attr:'placeholder:-- Select Counterparty --' }}
+                        {% if wizard.form.counterparty.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.counterparty.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Guarantor -->
+                    <div class="col-md-6">
+                        <label for="{{ wizard.form.guarantor.id_for_label }}" class="form-label">Guarantor (if applicable)</label>
+                        {{ wizard.form.guarantor|add_class:'form-select'|attr:'placeholder:-- Select Guarantor --' }}
+                        {% if wizard.form.guarantor.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.guarantor.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Request Title -->
+                    <div class="col-12">
+                        <label for="{{ wizard.form.title.id_for_label }}" class="form-label">Request Title</label>
+                        {{ wizard.form.title|add_class:'form-control'|attr:'placeholder:Enter a descriptive title for this request' }}
+                        {% if wizard.form.title.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Priority -->
+                    <div class="col-md-6">
+                        <label class="form-label">Priority</label>
+                        <div class="mb-2">
+                            {% for radio in wizard.form.priority %}
+                                <div class="form-check form-check-inline">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if wizard.form.priority.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.priority.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Required By Date -->
+                    <div class="col-md-6">
+                        <label for="{{ wizard.form.required_by_date.id_for_label }}" class="form-label">Required By Date</label>
+                        <div class="input-group">
+                            {{ wizard.form.required_by_date|add_class:'form-control' }}
+                            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                        </div>
+                        {% if wizard.form.required_by_date.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.required_by_date.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">When is this request needed by?</small>
+                    </div>
+                    
+                    <!-- Priority Justification -->
+                    <div class="col-12">
+                        <label for="{{ wizard.form.priority_justification.id_for_label }}" class="form-label">Priority Justification</label>
+                        {{ wizard.form.priority_justification|add_class:'form-control'|attr:'rows:3' }}
+                        {% if wizard.form.priority_justification.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.priority_justification.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Explain why this request has the selected priority level.</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-4">
+                    <i class="bi bi-info-circle"></i> The basic information helps us understand the nature and urgency of your request. Please provide accurate details to ensure proper processing.
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-2"></i>Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">Next <i class="bi bi-arrow-right"></i></button>
+        </div>
+    </form>
+</div>
+{% endblock %}

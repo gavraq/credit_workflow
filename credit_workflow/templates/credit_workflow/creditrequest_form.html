@@ -1,0 +1,462 @@
+{% extends 'credit_workflow/base.html' %}
+{% load widget_tweaks %}
+
+{% block extra_head %}
+<style>
+  /* Radio button styling for priority field */
+  .priority-field div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .priority-field div > div {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+  }
+  
+  .priority-field input[type="radio"] {
+    margin-right: 5px;
+  }
+  
+  .priority-field label {
+    margin-bottom: 0;
+    font-weight: normal;
+  }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">{% if object %}Edit{% else %}New{% endif %} Credit Request</h2>
+      <p class="text-muted">{% if object %}Update the details for credit request #{{ object.request_number }}{% else %}Complete all fields to create a new credit request{% endif %}</p>
+    </div>
+    <div>
+      <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to List
+      </a>
+    </div>
+  </div>
+
+  <form method="post" id="credit-request-form" novalidate>
+    {% csrf_token %}
+    
+    <!-- Basic Information -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Basic Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Counterparty -->
+          <div class="col-md-6">
+            <label for="{{ form.counterparty.id_for_label }}" class="form-label">Counterparty</label>
+            {{ form.counterparty|add_class:'form-select' }}
+            {% if form.counterparty.errors %}
+              <div class="invalid-feedback d-block">{{ form.counterparty.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Guarantor -->
+          <div class="col-md-6">
+            <label for="{{ form.guarantor.id_for_label }}" class="form-label">Guarantor (if applicable)</label>
+            {{ form.guarantor|add_class:'form-select' }}
+            {% if form.guarantor.errors %}
+              <div class="invalid-feedback d-block">{{ form.guarantor.errors }}</div>
+            {% endif %}
+          </div>
+
+          {% if object and object.workflow_state %}
+          <!-- Workflow State -->
+          <div class="col-md-6">
+            <label class="form-label">Workflow State</label>
+            <div class="form-control-plaintext">
+              <span class="badge {% if object.workflow_state.name == 'Draft' %}bg-secondary{% elif object.workflow_state.name == 'In Review' %}bg-info{% elif object.workflow_state.name == 'Approved' %}bg-success{% elif object.workflow_state.name == 'Rejected' %}bg-danger{% else %}bg-primary{% endif %}">
+                {{ object.workflow_state.name }}
+              </span>
+            </div>
+          </div>
+          {% endif %}
+          <!-- Request Number -->
+          <div class="col-md-6">
+            <label for="{{ form.request_number.id_for_label }}" class="form-label">Request Number</label>
+            {{ form.request_number|add_class:'form-control' }}
+            {% if form.request_number.errors %}
+              <div class="invalid-feedback d-block">{{ form.request_number.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Submitter -->
+          <div class="col-md-6">
+            <label for="{{ form.submitter.id_for_label }}" class="form-label">Submitter</label>
+            {{ form.submitter|add_class:'form-select' }}
+            {% if form.submitter.errors %}
+              <div class="invalid-feedback d-block">{{ form.submitter.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Business Sponsor -->
+          <div class="col-md-6">
+            <label for="{{ form.business_sponsor.id_for_label }}" class="form-label">Business Sponsor</label>
+            {{ form.business_sponsor|add_class:'form-select' }}
+            {% if form.business_sponsor.errors %}
+              <div class="invalid-feedback d-block">{{ form.business_sponsor.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Second Sponsor -->
+          <div class="col-md-6">
+            <label for="{{ form.second_sponsor.id_for_label }}" class="form-label">Second Sponsor</label>
+            {{ form.second_sponsor|add_class:'form-select' }}
+            {% if form.second_sponsor.errors %}
+              <div class="invalid-feedback d-block">{{ form.second_sponsor.errors }}</div>
+            {% endif %}
+          </div>
+          <!-- Priority -->
+          <div class="col-md-6">
+            <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+            <div class="priority-field">
+              {{ form.priority }}
+            </div>
+            {% if form.priority.errors %}
+              <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Required By Date -->
+          <div class="col-md-6">
+            <label for="{{ form.required_by_date.id_for_label }}" class="form-label">Required By Date</label>
+            <div class="input-group">
+              {{ form.required_by_date|add_class:'form-control' }}
+              <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+            </div>
+            {% if form.required_by_date.errors %}
+              <div class="invalid-feedback d-block">{{ form.required_by_date.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Priority Justification -->
+          <div class="col-12">
+            <label for="{{ form.priority_justification.id_for_label }}" class="form-label">Priority Justification</label>
+            {{ form.priority_justification|add_class:'form-control'|attr:'rows:3' }}
+            {% if form.priority_justification.errors %}
+              <div class="invalid-feedback d-block">{{ form.priority_justification.errors }}</div>
+            {% endif %}
+            <small class="text-muted">Explain why this request has the selected priority level.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Client Information -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Client Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Revenue Last 12m -->
+          <div class="col-md-4">
+            <label for="{{ form.revenue_last_12m.id_for_label }}" class="form-label">Revenue (Last 12M)</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              {{ form.revenue_last_12m|add_class:'form-control' }}
+            </div>
+            {% if form.revenue_last_12m.errors %}
+              <div class="invalid-feedback d-block">{{ form.revenue_last_12m.errors }}</div>
+            {% endif %}
+            <small class="text-muted">Enter value in millions</small>
+          </div>
+
+          <!-- Projected Revenue -->
+          <div class="col-md-4">
+            <label for="{{ form.projected_revenue.id_for_label }}" class="form-label">Projected Revenue</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              {{ form.projected_revenue|add_class:'form-control' }}
+            </div>
+            {% if form.projected_revenue.errors %}
+              <div class="invalid-feedback d-block">{{ form.projected_revenue.errors }}</div>
+            {% endif %}
+            <small class="text-muted">Enter value in millions</small>
+          </div>
+
+          <!-- Projected RoRWA -->
+          <div class="col-md-4">
+            <label for="{{ form.projected_rorwa_percentage.id_for_label }}" class="form-label">Projected RoRWA (%)</label>
+            <div class="input-group">
+              {{ form.projected_rorwa_percentage|add_class:'form-control' }}
+              <span class="input-group-text">%</span>
+            </div>
+            {% if form.projected_rorwa_percentage.errors %}
+              <div class="invalid-feedback d-block">{{ form.projected_rorwa_percentage.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Country Risk Limit Confirmed -->
+          <div class="col-md-4">
+            <div class="form-check form-switch mt-4">
+              {{ form.country_risk_limit_confirmed|add_class:'form-check-input' }}
+              <label class="form-check-label" for="{{ form.country_risk_limit_confirmed.id_for_label }}">
+                Country Risk Limit Confirmed
+              </label>
+              {% if form.country_risk_limit_confirmed.errors %}
+                <div class="invalid-feedback d-block">{{ form.country_risk_limit_confirmed.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Client Introduction Details -->
+          <div class="col-12">
+            <label for="{{ form.client_introduction_details.id_for_label }}" class="form-label">Client Introduction Details</label>
+            {{ form.client_introduction_details|add_class:'form-control'|attr:'rows:4' }}
+            {% if form.client_introduction_details.errors %}
+              <div class="invalid-feedback d-block">{{ form.client_introduction_details.errors }}</div>
+            {% endif %}
+            <small class="text-muted">Include key information about the client's business, history, and relationship with our institution.</small>
+          </div>
+          <!-- KYC Approval Status -->
+          <div class="col-md-4">
+            <label for="{{ form.kyc_approval_status.id_for_label }}" class="form-label">KYC Approval Status</label>
+            {{ form.kyc_approval_status|add_class:'form-select' }}
+            {% if form.kyc_approval_status.errors %}
+              <div class="invalid-feedback d-block">{{ form.kyc_approval_status.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Senior Client Contact -->
+          <div class="col-md-4">
+            <label for="{{ form.senior_client_contact.id_for_label }}" class="form-label">Senior Client Contact</label>
+            {{ form.senior_client_contact|add_class:'form-control' }}
+            {% if form.senior_client_contact.errors %}
+              <div class="invalid-feedback d-block">{{ form.senior_client_contact.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Last Client Visit Date -->
+          <div class="col-md-4">
+            <label for="{{ form.last_client_visit_date.id_for_label }}" class="form-label">Last Client Visit Date</label>
+            <div class="input-group">
+              {{ form.last_client_visit_date|add_class:'form-control' }}
+              <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+            </div>
+            {% if form.last_client_visit_date.errors %}
+              <div class="invalid-feedback d-block">{{ form.last_client_visit_date.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Has Legal Opinion -->
+          <div class="col-md-4">
+            <div class="form-check form-switch mt-2">
+              {{ form.has_legal_opinion|add_class:'form-check-input' }}
+              <label class="form-check-label" for="{{ form.has_legal_opinion.id_for_label }}">
+                Has Legal Opinion
+              </label>
+              {% if form.has_legal_opinion.errors %}
+                <div class="invalid-feedback d-block">{{ form.has_legal_opinion.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Financial Statements Received -->
+          <div class="col-md-4">
+            <div class="form-check form-switch mt-2">
+              {{ form.financial_statements_received|add_class:'form-check-input' }}
+              <label class="form-check-label" for="{{ form.financial_statements_received.id_for_label }}">
+                Financial Statements Received
+              </label>
+              {% if form.financial_statements_received.errors %}
+                <div class="invalid-feedback d-block">{{ form.financial_statements_received.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Interim Financials Info -->
+          <div class="col-12">
+            <label for="{{ form.interim_financials_info.id_for_label }}" class="form-label">Interim Financials Info</label>
+            {{ form.interim_financials_info|add_class:'form-control'|attr:'rows:3' }}
+            {% if form.interim_financials_info.errors %}
+              <div class="invalid-feedback d-block">{{ form.interim_financials_info.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Credit Limits -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Credit Limits</h5>
+      </div>
+      <div class="card-body">
+        {{ limit_formset.management_form }}
+        
+        <!-- Display existing limits -->
+        <div class="table-responsive mb-3">
+          <table class="table table-bordered" id="limits-table">
+            <thead class="table-light">
+              <tr>
+                <th>Limit Type</th>
+                <th>Existing Amount (M)</th>
+                <th>Existing Tenor (months)</th>
+                <th>Proposed Amount (M)</th>
+                <th>Proposed Tenor (months)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for form in limit_formset %}
+                <tr class="limit-form{% if forloop.last %} empty-form d-none{% endif %}">
+                  <td>
+                    {{ form.id }}
+                    {{ form.limit_type|add_class:'form-select'|attr:'required' }}
+                  </td>
+                  <td>{{ form.existing_limit_amount|add_class:'form-control' }}</td>
+                  <td>{{ form.existing_tenor_months|add_class:'form-control' }}</td>
+                  <td>{{ form.proposed_limit_amount|add_class:'form-control'|attr:'required' }}</td>
+                  <td>{{ form.proposed_tenor_months|add_class:'form-control'|attr:'required' }}</td>
+                  <td>
+                    {% if not forloop.last %}
+                      <div class="form-check">
+                        {{ form.DELETE|add_class:'form-check-input'|attr:'hidden' }}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-limit-btn">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+              {% if limit_formset.total_form_count == 1 %}
+                <tr id="no-limits-row">
+                  <td colspan="6" class="text-center py-3">
+                    No credit limits added yet. Use the button below to add limits.
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        
+        <button type="button" id="add-limit-btn" class="btn btn-outline-primary">
+          <i class="bi bi-plus-circle me-2"></i>Add Credit Limit
+        </button>
+        
+        <div class="alert alert-info small mt-3">
+          <i class="bi bi-info-circle me-2"></i> At least one credit limit is required for each request. Adding multiple limits allows you to specify different types of exposure.
+        </div>
+      </div>
+    </div>
+    
+    <div class="d-flex justify-content-between mb-5">
+      <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle me-2"></i>Cancel
+      </a>
+      <div>
+        <button type="submit" name="save_draft" class="btn btn-outline-primary me-2">
+          <i class="bi bi-save me-2"></i>Save as Draft
+        </button>
+        <button type="submit" name="save" class="btn btn-primary">
+          <i class="bi bi-check-circle me-2"></i>Submit Request
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const addLimitBtn = document.getElementById('add-limit-btn');
+    const limitsTable = document.getElementById('limits-table');
+    const totalFormsInput = document.querySelector('input[name="limit_set-TOTAL_FORMS"]');
+    const emptyFormRow = document.querySelector('.limit-form.empty-form');
+    const noLimitsRow = document.getElementById('no-limits-row');
+    
+    // Initialize the form
+    function initFormset() {
+      // Re-index forms to ensure proper sequence
+      const visibleRows = limitsTable.querySelectorAll('tbody tr.limit-form:not(.empty-form):not(.d-none)');
+      visibleRows.forEach((row, index) => {
+        row.dataset.formIndex = index;
+      });
+    }
+    
+    // Add new form button handler
+    if (addLimitBtn) {
+      addLimitBtn.addEventListener('click', function() {
+        // Remove the no limits message if it exists
+        if (noLimitsRow) {
+          noLimitsRow.remove();
+        }
+        
+        // Get the total current forms
+        const formCount = parseInt(totalFormsInput.value);
+        
+        // Clone the empty template form
+        const newRow = emptyFormRow.cloneNode(true);
+        newRow.classList.remove('empty-form', 'd-none');
+        newRow.dataset.formIndex = formCount - 1;
+        
+        // Update the form index in all the cloned elements
+        const prefix = 'limit_set-' + (formCount - 1);
+        const emptyPrefix = 'limit_set-__prefix__';
+        
+        newRow.innerHTML = newRow.innerHTML.replace(
+          new RegExp(emptyPrefix, 'g'), 
+          prefix
+        );
+        
+        // Insert the new row before the template row
+        emptyFormRow.parentNode.insertBefore(newRow, emptyFormRow);
+        
+        // Increment the total forms counter
+        totalFormsInput.value = formCount + 1;
+      });
+    }
+    
+    // Handle remove button clicks using event delegation
+    if (limitsTable) {
+      limitsTable.addEventListener('click', function(e) {
+        const removeBtn = e.target.closest('.remove-limit-btn');
+        if (removeBtn) {
+          const row = removeBtn.closest('tr');
+          const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+          
+          if (deleteCheckbox) {
+            // Mark for deletion
+            deleteCheckbox.checked = true;
+            
+            // Hide the row
+            row.style.display = 'none';
+            
+            // Check if there are any visible rows left
+            const visibleRows = limitsTable.querySelectorAll('tbody tr.limit-form:not(.empty-form):not([style*="display: none"])');
+            if (visibleRows.length === 0) {
+              // Add the no limits message
+              const tbody = limitsTable.querySelector('tbody');
+              const emptyRow = document.createElement('tr');
+              emptyRow.id = 'no-limits-row';
+              emptyRow.innerHTML = `
+                <td colspan="6" class="text-center py-3">
+                  No credit limits added yet. Use the button below to add limits.
+                </td>
+              `;
+              tbody.insertBefore(emptyRow, emptyFormRow);
+            }
+          }
+        }
+      });
+    }
+    
+    // Initialize on page load
+    initFormset();
+  });
+</script>
+{% endblock %}

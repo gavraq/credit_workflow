@@ -1,0 +1,107 @@
+{% extends 'credit_workflow/base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+{% include "credit_workflow/components/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">{% if mode == 'edit' %}Edit{% else %}New{% endif %} Credit Request</h2>
+            <p class="text-muted">{% if mode == 'edit' %}Update the details for credit request #{{ credit_request.request_number }}{% else %}Complete all fields to create a new credit request{% endif %}</p>
+        </div>
+        <div>
+            <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold">Step 4: Business Justification</span>
+            <span class="text-muted">4 / 4</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+        </div>
+    </div>
+    
+    <form method="post" id="business-form" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Business Justification</h5>
+            </div>
+            <div class="card-body">
+                
+                <div class="row g-3">
+                    <!-- Business Description -->
+                    <div class="col-12">
+                        <label for="{{ wizard.form.description.id_for_label }}" class="form-label">Detailed Business Justification</label>
+                        {{ wizard.form.description|add_class:'form-control'|attr:'rows:5'|attr:'placeholder:Provide a detailed rationale for this credit request, including expected business outcomes and risks.' }}
+                        {% if wizard.form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.description.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Include key business reasons, expected profitability, and any relevant risk considerations.</small>
+                    </div>
+                    
+                    <!-- Country Risk Limit Toggle -->
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mt-2">
+                            {{ wizard.form.country_risk_limit_confirmed|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ wizard.form.country_risk_limit_confirmed.id_for_label }}">
+                                Country Risk Limit Confirmed
+                            </label>
+                            {% if wizard.form.country_risk_limit_confirmed.errors %}
+                                <div class="invalid-feedback d-block">{{ wizard.form.country_risk_limit_confirmed.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">Confirm that this request is within the approved country risk limits.</small>
+                    </div>
+                    
+                    <!-- Business Sponsor -->
+                    <div class="col-md-6">
+                        <label for="{{ wizard.form.business_sponsor.id_for_label }}" class="form-label">Business Sponsor</label>
+                        {{ wizard.form.business_sponsor|add_class:'form-select' }}
+                        {% if wizard.form.business_sponsor.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.business_sponsor.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Select the business sponsor who will approve this request.</small>
+                    </div>
+                    
+                    <!-- Second Sponsor (added field) -->
+                    <div class="col-md-6">
+                        <label for="{{ wizard.form.second_sponsor.id_for_label }}" class="form-label">Second Sponsor (optional)</label>
+                        {{ wizard.form.second_sponsor|add_class:'form-select' }}
+                        {% if wizard.form.second_sponsor.errors %}
+                            <div class="invalid-feedback d-block">{{ wizard.form.second_sponsor.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Select an optional second sponsor if required.</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-4">
+                    <i class="bi bi-info-circle me-2"></i> This is the final step in creating your credit request. Once submitted, your request will be reviewed by the selected business sponsor and assigned to a credit analyst for processing.
+                </div>
+                
+                <div class="alert alert-warning small mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Please review all information carefully before submitting. You can use the "Previous" button to go back and make changes if needed.
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <button type="submit" name="wizard_goto_step" value="step3" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i> Previous</button>
+            <div>
+                <button type="submit" name="save_action" value="draft" class="btn btn-outline-primary me-2"><i class="bi bi-save me-2"></i> Save as Draft</button>
+                <button type="submit" name="save_action" value="submit" class="btn btn-primary me-2"><i class="bi bi-check-circle me-2"></i> Submit</button>
+                <button type="submit" name="save_action" value="review" class="btn btn-success"><i class="bi bi-send me-2"></i> Send for Review</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

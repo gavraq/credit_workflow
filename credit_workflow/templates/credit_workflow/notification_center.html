@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
+  <div class="sidebar-sticky">
+    <ul class="nav flex-column mb-2 mt-4">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_list' %}"><i class="fas fa-list me-2"></i>My Requests</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">Notifications</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_center' %}active{% endif %}" href="{% url 'notification_center' %}"><i class="fas fa-bell me-2"></i>Notification Center</a></li>
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_preferences' %}active{% endif %}" href="{% url 'notification_preferences' %}"><i class="fas fa-cog me-2"></i>Preferences</a></li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Notification Center</h2>
+    <a href="{% url 'notification_preferences' %}" class="btn btn-outline-primary"><i class="fas fa-cog me-2"></i>Notification Preferences</a>
+  </div>
+  
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Type</th>
+              <th>Content</th>
+              <th>Link</th>
+              <th>Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in notifications %}
+            {% if not n.dismissed %}
+            <tr{% if not n.read %} class="table-warning"{% endif %}>
+              <td>
+                {% if n.type == 'workflow' %}
+                <span class="badge bg-primary">{{ n.get_type_display }}</span>
+                {% elif n.type == 'document' %}
+                <span class="badge bg-success">{{ n.get_type_display }}</span>
+                {% elif n.type == 'reminder' %}
+                <span class="badge bg-warning text-dark">{{ n.get_type_display }}</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ n.get_type_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ n.content }}</td>
+              <td>{% if n.link %}<a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">View</a>{% endif %}</td>
+              <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  {% if not n.read %}
+                  <form method="post" action="{% url 'notification_mark_read' n.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as Read"><i class="fas fa-check"></i></button>
+                  </form>
+                  {% endif %}
+                  <form method="post" action="{% url 'notification_dismiss' n.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Dismiss"><i class="fas fa-times"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endif %}
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-4">No notifications. <a href="{% url 'notification_preferences' %}">Check your notification preferences</a>.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  {% if notifications %}
+  <div class="card shadow-sm mt-4">
+    <div class="card-header bg-light">
+      <h5 class="card-title mb-0">Dismissed Notifications</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Type</th>
+              <th>Content</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in notifications %}
+            {% if n.dismissed %}
+            <tr class="text-muted">
+              <td><span class="badge bg-secondary">{{ n.get_type_display }}</span></td>
+              <td>{{ n.content }}</td>
+              <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+            </tr>
+            {% endif %}
+            {% empty %}
+            <tr><td colspan="3" class="text-center">No dismissed notifications.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

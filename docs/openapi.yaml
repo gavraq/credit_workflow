@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Credit Risk Workflow API
+  version: 1.0.0
+  description: |
+    REST API for Credit Risk Workflow system, including credit requests, workflow transitions, documents, notifications, and PDF download.
+servers:
+  - url: http://localhost:8001/api/
+paths:
+  /credit-requests/:
+    get:
+      summary: List credit requests
+      tags: [CreditRequest]
+      responses:
+        '200':
+          description: List of credit requests
+    post:
+      summary: Create a credit request
+      tags: [CreditRequest]
+      responses:
+        '201':
+          description: Created
+  /credit-requests/{id}/:
+    get:
+      summary: Retrieve a credit request
+      tags: [CreditRequest]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Credit request detail
+    put:
+      summary: Update a credit request
+      tags: [CreditRequest]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete a credit request
+      tags: [CreditRequest]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Deleted
+  /credit-requests/{id}/transition/:
+    post:
+      summary: Transition workflow state
+      tags: [CreditRequest]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to_state_id:
+                  type: integer
+                action_name:
+                  type: string
+      responses:
+        '200':
+          description: Transitioned
+        '400':
+          description: Invalid transition
+  /documents/:
+    get:
+      summary: List documents
+      tags: [Document]
+      responses:
+        '200':
+          description: List of documents
+    post:
+      summary: Upload a document
+      tags: [Document]
+      responses:
+        '201':
+          description: Created
+  /documents/{id}/:
+    get:
+      summary: Retrieve a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Document detail
+    put:
+      summary: Update a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Deleted
+  /documents/{id}/new_version/:
+    post:
+      summary: Create new version of a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+      responses:
+        '200':
+          description: New version created
+        '400':
+          description: Permission denied
+  /documents/{id}/finalize/:
+    post:
+      summary: Finalize (publish) a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Finalized
+        '400':
+          description: Permission denied
+  /documents/{id}/pdf/:
+    get:
+      summary: Download PDF for a document
+      tags: [Document]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /notifications/:
+    get:
+      summary: List notifications
+      tags: [Notification]
+      responses:
+        '200':
+          description: List of notifications
+    post:
+      summary: Create a notification
+      tags: [Notification]
+      responses:
+        '201':
+          description: Created
+  /notifications/{id}/:
+    get:
+      summary: Retrieve a notification
+      tags: [Notification]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Notification detail
+    put:
+      summary: Update a notification
+      tags: [Notification]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete a notification
+      tags: [Notification]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Deleted
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

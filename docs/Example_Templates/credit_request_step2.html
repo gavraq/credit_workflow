@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}New Credit Request - Limit Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>New Credit Request</h2>
+        <p class="text-muted">Step 2: Limit Requests</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'credit_workflow:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="multi-step-progress mb-4">
+    <div class="step completed">
+        <div class="circle">1</div>
+        <div class="label">Basic Information</div>
+    </div>
+    <div class="step active">
+        <div class="circle">2</div>
+        <div class="label">Limit Requests</div>
+    </div>
+    <div class="step">
+        <div class="circle">3</div>
+        <div class="label">Relationship Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">4</div>
+        <div class="label">Business Justification</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Limit Requests</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            {{ formset.management_form }}
+            
+            <table class="table table-bordered" id="limit-requests-table">
+                <thead>
+                    <tr>
+                        <th>Limit Type</th>
+                        <th>Existing Amount (M)</th>
+                        <th>Existing Tenor (months)</th>
+                        <th>Proposed Amount (M)</th>
+                        <th>Proposed Tenor (months)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                        <tr class="limit-form {% if form.DELETE.value %}d-none{% endif %}">
+                            {{ form.id }}
+                            <td>
+                                {{ form.limit_type }}
+                                {% if form.limit_type.errors %}
+                                    <div class="text-danger small mt-1">{{ form.limit_type.errors }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.existing_amount }}
+                                {% if form.existing_amount.errors %}
+                                    <div class="text-danger small mt-1">{{ form.existing_amount.errors }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.existing_tenor }}
+                                {% if form.existing_tenor.errors %}
+                                    <div class="text-danger small mt-1">{{ form.existing_tenor.errors }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.proposed_amount }}
+                                {% if form.proposed_amount.errors %}
+                                    <div class="text-danger small mt-1">{{ form.proposed_amount.errors }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.proposed_tenor }}
+                                {% if form.proposed_tenor.errors %}
+                                    <div class="text-danger small mt-1">{{ form.proposed_tenor.errors }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if formset.can_delete %}
+                                    <div class="form-check">
+                                        {{ form.DELETE }}
+                                        <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Delete</label>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="mb-3">
+                <button type="button" id="add-limit-request" class="btn btn-outline-secondary">
+                    <i class="fas fa-plus"></i> Add Limit Request
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="{% url 'credit_workflow:create_credit_request' step=1 %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Add limit request button handler
+        $('#add-limit-request').click(function() {
+            // Get the total number of forms
+            var totalForms = $('#id_limits-TOTAL_FORMS');
+            var currentCount = parseInt(totalForms.val());
+            
+            // Clone the last form
+            var newForm = $('.limit-form:last').clone(true);
+            
+            // Update form attributes with new index
+            newForm.find(':input').each(function() {
+                var name = $(this).attr('name');
+                if (name) {
+                    name = name.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                    $(this).attr('name', name);
+                    
+                    var id = $(this).attr('id');
+                    if (id) {
+                        id = id.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                        $(this).attr('id', id);
+                    }
+                    
+                    // Clear values for new form
+                    if (!$(this).is(':checkbox')) {
+                        $(this).val('');
+                    } else {
+                        $(this).prop('checked', false);
+                    }
+                }
+            });
+            
+            // Update label for attributes
+            newForm.find('label').each(function() {
+                var forAttr = $(this).attr('for');
+                if (forAttr) {
+                    forAttr = forAttr.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                    $(this).attr('for', forAttr);
+                }
+            });
+            
+            // Make sure the new form is visible (in case we cloned a deleted one)
+            newForm.removeClass('d-none');
+            
+            // Append the new form
+            $('.limit-form:last').after(newForm);
+            
+            // Increment the form count
+            totalForms.val(currentCount + 1);
+        });
+        
+        // Delete button handler
+        $('.limit-form input[type="checkbox"][name$="-DELETE"]').change(function() {
+            if ($(this).is(':checked')) {
+                $(this).closest('tr').addClass('table-danger');
+            } else {
+                $(this).closest('tr').removeClass('table-danger');
+            }
+        });
+    });
+</script>
+{% endblock %}

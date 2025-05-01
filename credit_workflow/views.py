@@ -1,4 +1,548 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, UpdateView, ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.utils import timezone
+from django.contrib import messages
+from workflow.models import WorkflowState
+from django.forms import inlineformset_factory
+from .models import CreditRequest, CreditLimit, CreditQuestionnaire, LegalReview, Document, Notification, NotificationPreference, CreditAnalysis
+from .forms import CreditRequestForm, CreditLimitForm, CreditReviewForm, CreditQuestionnaireForm, LegalReviewForm, DocumentForm, NotificationPreferenceForm, CreditAnalysisForm
+
+# Dashboard landing page
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """Dashboard landing page for the Credit Risk Workflow app."""
+    template_name = "credit_workflow/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get requests submitted by the user or assigned to them
+        user_requests = CreditRequest.objects.filter(submitter=self.request.user).order_by('-created_at')[:10]
+        assigned_requests = CreditRequest.objects.filter(assigned_analyst=self.request.user).order_by('-created_at')[:10]
+        
+        # Combine the querysets and get unique values
+        recent_requests = (user_requests | assigned_requests).distinct().order_by('-created_at')[:10]
+        
+        # If the above doesn't return any results, show all requests (for admin/testing)
+        if not recent_requests and self.request.user.is_staff:
+            recent_requests = CreditRequest.objects.all().order_by('-created_at')[:10]
+            
+        context['recent_requests'] = recent_requests
+        
+        # Add workflow stats
+        context['workflow_states'] = WorkflowState.objects.all()
+        context['total_requests'] = CreditRequest.objects.count()
+        
+        # Calculate counts for various states
+        try:
+            pending_approval_states = WorkflowState.objects.filter(name__in=["PENDING_APPROVAL", "BUSINESS_SPONSORSHIP_PENDING"])
+            context['pending_approval_count'] = CreditRequest.objects.filter(workflow_state__in=pending_approval_states).count()
+        except:
+            context['pending_approval_count'] = 0
+            
+        try:
+            context['awaiting_sponsorship_count'] = CreditRequest.objects.filter(workflow_state__name="BUSINESS_SPONSORSHIP_PENDING").count()
+        except:
+            context['awaiting_sponsorship_count'] = 0
+            
+        from django.utils import timezone
+        start_of_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        try:
+            completed_states = WorkflowState.objects.filter(name__in=["APPROVED", "COMPLETED"])
+            context['completed_this_month'] = CreditRequest.objects.filter(
+                workflow_state__in=completed_states,
+                updated_at__gte=start_of_month
+            ).count()
+        except:
+            context['completed_this_month'] = 0
+            
+        return context
+
+# Welcome view remains
 
 def welcome(request):
     return render(request, 'credit_workflow/welcome.html')
+
+class CreditRequestListView(LoginRequiredMixin, ListView):
+    model = CreditRequest
+    template_name = 'credit_workflow/creditrequest_list.html'
+    context_object_name = 'credit_requests'
+    paginate_by = 20
+    ordering = ['-created_at']
+
+class CreditRequestDetailView(LoginRequiredMixin, DetailView):
+    model = CreditRequest
+    template_name = 'credit_workflow/creditrequest_detail.html'
+    context_object_name = 'credit_request'
+
+class CreditQuestionnaireCreateView(LoginRequiredMixin, CreateView):
+    model = CreditQuestionnaire
+    form_class = CreditQuestionnaireForm
+    template_name = 'credit_workflow/creditquestionnaire_form.html'
+    success_url = reverse_lazy('creditrequest_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill the credit_request if provided in URL
+        credit_request_id = self.request.GET.get('credit_request')
+        if credit_request_id:
+            initial['credit_request'] = credit_request_id
+        return initial
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        return super().form_valid(form)
+        
+    def get_success_url(self):
+        if self.object.is_draft:
+            messages.success(self.request, 'Questionnaire saved as draft.')
+        else:
+            messages.success(self.request, 'Questionnaire submitted successfully.')
+        return reverse_lazy('creditrequest_detail', kwargs={'pk': self.object.credit_request.pk})
+
+class CreditQuestionnaireUpdateView(LoginRequiredMixin, UpdateView):
+    model = CreditQuestionnaire
+    form_class = CreditQuestionnaireForm
+    template_name = 'credit_workflow/creditquestionnaire_form.html'
+
+    def form_valid(self, form):
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        if self.object.is_draft:
+            messages.success(self.request, 'Questionnaire updated and saved as draft.')
+        else:
+            messages.success(self.request, 'Questionnaire updated and submitted successfully.')
+        return reverse_lazy('creditrequest_detail', kwargs={'pk': self.object.credit_request.pk})
+
+class LegalReviewCreateView(LoginRequiredMixin, CreateView):
+    model = LegalReview
+    form_class = LegalReviewForm
+    template_name = 'credit_workflow/legalreview_form.html'
+    success_url = reverse_lazy('welcome')
+
+    def form_valid(self, form):
+        form.instance.reviewer = self.request.user
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        return super().form_valid(form)
+
+class LegalReviewUpdateView(LoginRequiredMixin, UpdateView):
+    model = LegalReview
+    form_class = LegalReviewForm
+    template_name = 'credit_workflow/legalreview_form.html'
+    success_url = reverse_lazy('welcome')
+
+    def form_valid(self, form):
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        return super().form_valid(form)
+
+# Inline formset for CreditLimit
+CreditLimitFormSet = inlineformset_factory(
+    CreditRequest, CreditLimit, form=CreditLimitForm, extra=1, can_delete=True
+)
+
+from django.views.generic import DetailView
+
+class CreditRequestConfirmationView(DetailView):
+    model = CreditRequest
+    template_name = 'credit_workflow/creditrequest_confirmation.html'
+    context_object_name = 'credit_request'
+
+class CreditRequestCreateView(CreateView):
+    model = CreditRequest
+    form_class = CreditRequestForm
+    template_name = 'credit_workflow/creditrequest_form.html'
+    success_url = reverse_lazy('welcome')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['limit_formset'] = CreditLimitFormSet(self.request.POST)
+        else:
+            context['limit_formset'] = CreditLimitFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        limit_formset = context['limit_formset']
+        if form.is_valid() and limit_formset.is_valid():
+            self.object = form.save(commit=False)
+            # Set workflow state based on submission type
+            if not self.object.workflow_state_id:
+                try:
+                    if 'save_draft' in self.request.POST:
+                        self.object.workflow_state = WorkflowState.objects.get(name__iexact="Draft")
+                    else:
+                        self.object.workflow_state = WorkflowState.objects.get(name__iexact="Submitted")
+                except WorkflowState.DoesNotExist:
+                    # Fallback: set to first available state
+                    self.object.workflow_state = WorkflowState.objects.first()
+            self.object.submitted_at = timezone.now()
+            self.object.save()
+            limit_formset.instance = self.object
+            limit_formset.save()
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
+
+class CreditRequestUpdateView(UpdateView):
+    model = CreditRequest
+    form_class = CreditRequestForm
+    template_name = 'credit_workflow/creditrequest_form.html'
+    success_url = reverse_lazy('welcome')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['limit_formset'] = CreditLimitFormSet(self.request.POST, instance=self.object)
+        else:
+            context['limit_formset'] = CreditLimitFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        limit_formset = context['limit_formset']
+        if form.is_valid() and limit_formset.is_valid():
+            self.object = form.save(commit=False)
+            if 'save_draft' in self.request.POST:
+                try:
+                    self.object.workflow_state = WorkflowState.objects.get(name__iexact="Draft")
+                except WorkflowState.DoesNotExist:
+                    self.object.workflow_state = WorkflowState.objects.first()
+            self.object.save()
+            limit_formset.instance = self.object
+            limit_formset.save()
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
+
+class CreditReviewUpdateView(UpdateView):
+    model = CreditRequest
+    form_class = CreditReviewForm
+    template_name = "credit_workflow/creditreview_form.html"
+    success_url = reverse_lazy('dashboard')
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # Only allow access if current state is CREDIT_REVIEW
+        if self.object.workflow_state.name != "CREDIT_REVIEW":
+            return redirect('dashboard')
+            return redirect('welcome')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        # Transition workflow state to BUSINESS_SPONSORSHIP_PENDING
+        try:
+            next_state = WorkflowState.objects.get(name="BUSINESS_SPONSORSHIP_PENDING")
+            self.object.workflow_state = next_state
+            self.object.save()
+        except WorkflowState.DoesNotExist:
+            pass  # Optionally, add error handling/logging here
+        return redirect(self.success_url)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = self.object
+        return context
+
+class DocumentUploadView(LoginRequiredMixin, CreateView):
+    model = Document
+    form_class = DocumentForm
+    template_name = 'credit_workflow/document_upload.html'
+    success_url = reverse_lazy('creditrequest_list')
+
+    def form_valid(self, form):
+        form.instance.uploaded_by = self.request.user
+        return super().form_valid(form)
+
+class DocumentListView(LoginRequiredMixin, ListView):
+    model = Document
+    template_name = 'credit_workflow/document_list.html'
+    context_object_name = 'documents'
+
+    def get_queryset(self):
+        credit_request_id = self.kwargs.get('credit_request_id')
+        return Document.objects.filter(credit_request_id=credit_request_id)
+
+class NotificationCenterView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = 'credit_workflow/notification_center.html'
+    context_object_name = 'notifications'
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+
+class NotificationPreferencesView(LoginRequiredMixin, UpdateView):
+    model = NotificationPreference
+    form_class = NotificationPreferenceForm
+    template_name = 'credit_workflow/notification_preferences.html'
+    success_url = reverse_lazy('notification_center')
+
+    def get_object(self, queryset=None):
+        obj, created = NotificationPreference.objects.get_or_create(user=self.request.user)
+        return obj
+
+from django.views import View
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+class NotificationMarkReadView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        notification = Notification.objects.filter(pk=pk, user=request.user).first()
+        if notification:
+            notification.read = True
+            notification.save()
+        return HttpResponseRedirect(reverse('notification_center'))
+
+class NotificationDismissView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        notification = Notification.objects.filter(pk=pk, user=request.user).first()
+        if notification:
+            notification.dismissed = True
+            notification.save()
+        return HttpResponseRedirect(reverse('notification_center'))
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .serializers import NotificationSerializer
+
+class NotificationListAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        print('All users:', list(User.objects.all()))
+        print('All notifications:', list(Notification.objects.all()))
+        print('API request.user:', request.user, request.user.pk)
+        notifications = Notification.objects.filter(user=request.user)
+        print('Notifications for user:', list(notifications))
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
+class NotificationMarkReadAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        notification = Notification.objects.filter(pk=pk, user=request.user).first()
+        if notification:
+            notification.read = True
+            notification.save()
+            return Response({'status': 'success'})
+        return Response({'status': 'not found'}, status=404)
+
+class NotificationDismissAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        notification = Notification.objects.filter(pk=pk, user=request.user).first()
+        if notification:
+            notification.dismissed = True
+            notification.save()
+            return Response({'status': 'success'})
+        return Response({'status': 'not found'}, status=404)
+
+class CreditAnalysisCreateView(LoginRequiredMixin, CreateView):
+    model = CreditAnalysis
+    form_class = CreditAnalysisForm
+    template_name = 'credit_workflow/creditanalysis_form.html'
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill the credit_request if provided in URL
+        credit_request_id = self.request.GET.get('credit_request')
+        if credit_request_id:
+            initial['credit_request'] = credit_request_id
+        return initial
+
+    def form_valid(self, form):
+        form.instance.analyst = self.request.user
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        
+        # Compile all the form data into a structured analysis
+        analysis_content = self._compile_analysis_content(form)
+        form.instance.analysis = analysis_content
+        
+        return super().form_valid(form)
+    
+    def _compile_analysis_content(self, form):
+        # Organize all the form data into a structured format
+        sections = [
+            {'title': 'EXECUTIVE SUMMARY', 'content': [
+                {'subtitle': 'Purpose of Application', 'text': form.cleaned_data.get('purpose_of_application', '')},
+            ]},
+            {'title': 'FINANCIAL SUMMARY', 'content': [
+                {'subtitle': 'Rating: ' + form.cleaned_data.get('current_rating', ''), 'text': form.cleaned_data.get('financial_summary', '')},
+                {'subtitle': 'Rating Outlook', 'text': form.cleaned_data.get('rating_outlook', '')},
+            ]},
+            {'title': 'KEY RISKS', 'content': [
+                {'text': form.cleaned_data.get('key_risks', '')},
+            ]},
+            {'title': 'MARKET RISK ANALYSIS', 'content': [
+                {'text': form.cleaned_data.get('market_risk_analysis', '')},
+            ]},
+            {'title': 'CREDIT RECOMMENDATION', 'content': [
+                {'text': form.cleaned_data.get('credit_recommendation', '')},
+            ]},
+            {'title': 'ASSET QUALITY', 'content': [
+                {'text': form.cleaned_data.get('asset_quality', '')},
+            ]},
+            {'title': 'PROFITABILITY', 'content': [
+                {'text': form.cleaned_data.get('profitability_analysis', '')},
+            ]},
+            {'title': 'FUNDING & LIQUIDITY', 'content': [
+                {'text': form.cleaned_data.get('funding_liquidity', '')},
+            ]},
+        ]
+        
+        # Format the content as markdown
+        analysis = ''
+        for section in sections:
+            analysis += f"## {section['title']}\n\n"
+            for item in section['content']:
+                if 'subtitle' in item:
+                    analysis += f"### {item['subtitle']}\n"
+                analysis += f"{item['text']}\n\n"
+        
+        return analysis
+    
+    def get_success_url(self):
+        if self.object.is_draft:
+            messages.success(self.request, 'Credit Analysis saved as draft.')
+        else:
+            messages.success(self.request, 'Credit Analysis submitted successfully.')
+        return reverse_lazy('creditrequest_detail', kwargs={'pk': self.object.credit_request.pk})
+
+class CreditAnalysisUpdateView(LoginRequiredMixin, UpdateView):
+    model = CreditAnalysis
+    form_class = CreditAnalysisForm
+    template_name = 'credit_workflow/creditanalysis_form.html'
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        
+        # Extract data from the existing analysis to pre-populate form fields
+        analysis = self.object.analysis
+        
+        # Example method to extract sections - this would need to be enhanced based on your
+        # actual analysis structure
+        # Here we're just demonstrating a simple parsing approach
+        if '## EXECUTIVE SUMMARY' in analysis and '### Purpose of Application' in analysis:
+            purpose_section = analysis.split('### Purpose of Application')[1].split('##')[0].strip()
+            initial['purpose_of_application'] = purpose_section
+        
+        # Financial Summary & Rating
+        if '## FINANCIAL SUMMARY' in analysis:
+            financial_section = analysis.split('## FINANCIAL SUMMARY')[1].split('##')[0].strip()
+            initial['financial_summary'] = financial_section
+            
+            # Try to extract rating from the heading
+            for rating in self.form_class.RATING_CHOICES:
+                if rating[0] in financial_section:
+                    initial['current_rating'] = rating[0]
+                    break
+        
+        # Key Risks
+        if '## KEY RISKS' in analysis:
+            risks_section = analysis.split('## KEY RISKS')[1].split('##')[0].strip()
+            initial['key_risks'] = risks_section
+        
+        # Market Risk
+        if '## MARKET RISK ANALYSIS' in analysis:
+            market_section = analysis.split('## MARKET RISK ANALYSIS')[1].split('##')[0].strip()
+            initial['market_risk_analysis'] = market_section
+        
+        # Credit Recommendation
+        if '## CREDIT RECOMMENDATION' in analysis:
+            rec_section = analysis.split('## CREDIT RECOMMENDATION')[1].split('##')[0].strip()
+            initial['credit_recommendation'] = rec_section
+        
+        # Asset Quality
+        if '## ASSET QUALITY' in analysis:
+            asset_section = analysis.split('## ASSET QUALITY')[1].split('##')[0].strip()
+            initial['asset_quality'] = asset_section
+        
+        # Profitability
+        if '## PROFITABILITY' in analysis:
+            prof_section = analysis.split('## PROFITABILITY')[1].split('##')[0].strip()
+            initial['profitability_analysis'] = prof_section
+        
+        # Funding & Liquidity
+        if '## FUNDING & LIQUIDITY' in analysis:
+            funding_section = analysis.split('## FUNDING & LIQUIDITY')[1].split('##', 1)[0].strip()
+            initial['funding_liquidity'] = funding_section
+            
+        return initial
+
+    def form_valid(self, form):
+        form.instance.is_draft = 'save_draft' in self.request.POST
+        
+        # Compile all the form data into a structured analysis
+        analysis_content = self._compile_analysis_content(form)
+        form.instance.analysis = analysis_content
+        
+        return super().form_valid(form)
+    
+    def _compile_analysis_content(self, form):
+        # Same as in CreateView
+        sections = [
+            {'title': 'EXECUTIVE SUMMARY', 'content': [
+                {'subtitle': 'Purpose of Application', 'text': form.cleaned_data.get('purpose_of_application', '')},
+            ]},
+            {'title': 'FINANCIAL SUMMARY', 'content': [
+                {'subtitle': 'Rating: ' + form.cleaned_data.get('current_rating', ''), 'text': form.cleaned_data.get('financial_summary', '')},
+                {'subtitle': 'Rating Outlook', 'text': form.cleaned_data.get('rating_outlook', '')},
+            ]},
+            {'title': 'KEY RISKS', 'content': [
+                {'text': form.cleaned_data.get('key_risks', '')},
+            ]},
+            {'title': 'MARKET RISK ANALYSIS', 'content': [
+                {'text': form.cleaned_data.get('market_risk_analysis', '')},
+            ]},
+            {'title': 'CREDIT RECOMMENDATION', 'content': [
+                {'text': form.cleaned_data.get('credit_recommendation', '')},
+            ]},
+            {'title': 'ASSET QUALITY', 'content': [
+                {'text': form.cleaned_data.get('asset_quality', '')},
+            ]},
+            {'title': 'PROFITABILITY', 'content': [
+                {'text': form.cleaned_data.get('profitability_analysis', '')},
+            ]},
+            {'title': 'FUNDING & LIQUIDITY', 'content': [
+                {'text': form.cleaned_data.get('funding_liquidity', '')},
+            ]},
+        ]
+        
+        # Format the content as markdown
+        analysis = ''
+        for section in sections:
+            analysis += f"## {section['title']}\n\n"
+            for item in section['content']:
+                if 'subtitle' in item:
+                    analysis += f"### {item['subtitle']}\n"
+                analysis += f"{item['text']}\n\n"
+        
+        return analysis
+    
+    def get_success_url(self):
+        if self.object.is_draft:
+            messages.success(self.request, 'Credit Analysis updated and saved as draft.')
+        else:
+            messages.success(self.request, 'Credit Analysis updated and submitted successfully.')
+        return reverse_lazy('creditrequest_detail', kwargs={'pk': self.object.credit_request.pk})
+
+class CreditAnalysisDetailView(LoginRequiredMixin, DetailView):
+    model = CreditAnalysis
+    template_name = 'credit_workflow/creditanalysis_detail.html'
+    context_object_name = 'analysis'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add the credit request for additional context
+        context['credit_request'] = self.object.credit_request
+        return context

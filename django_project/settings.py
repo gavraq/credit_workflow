@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-x1h-96952@jtlz9)uj8_awe1!e6vy)1koxos35c8_9bd5a+5&p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'credit.gavinslater.co.uk']
 
 
 # Application definition
@@ -40,7 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
+    'workflow',
+    'documents',
+    'notifications',
     'credit_workflow',
+    'drf_yasg',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +64,7 @@ ROOT_URLCONF = 'django_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,6 +93,9 @@ DATABASES = {
     }
 }
 
+
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -119,6 +128,14 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Security Settings
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = ['https://credit.gavinslater.co.uk']
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -133,3 +150,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication URL settings
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_URL = '/accounts/login/'

@@ -1,0 +1,171 @@
+{% load workflow_tags %}
+{% load credit_workflow_tags %}
+{% comment %}
+  Component for displaying parallel process information.
+  Parameters:
+  - credit_request: The credit request object
+{% endcomment %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-light">
+    <h5 class="card-title mb-0">Parallel Processes</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <!-- Credit Analysis Process -->
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-header text-bg-primary">
+            Credit Analysis
+          </div>
+          <div class="card-body">
+            {% if credit_request.credit_analysis %}
+              {% if credit_request.credit_analysis.is_draft %}
+                <span class="badge bg-secondary mb-2">Draft</span>
+                <p class="mb-2">Last updated: {{ credit_request.credit_analysis.updated_at|date:"M d, Y" }}</p>
+                <div class="d-grid gap-2">
+                  <a href="{% url 'creditanalysis_update' credit_request.credit_analysis.id %}" class="btn btn-sm btn-outline-primary">
+                    Edit Draft
+                  </a>
+                </div>
+              {% else %}
+                <span class="badge bg-success mb-2">Completed</span>
+                <p class="mb-2">Completed by: {{ credit_request.credit_analysis.analyst.get_full_name }}</p>
+                <p class="mb-2">Date: {{ credit_request.credit_analysis.updated_at|date:"M d, Y" }}</p>
+                <div class="d-grid gap-2">
+                  <a href="{% url 'creditanalysis_detail' credit_request.credit_analysis.id %}" class="btn btn-sm btn-outline-primary">
+                    View Analysis
+                  </a>
+                </div>
+              {% endif %}
+            {% else %}
+              {% if credit_request.workflow_state.name == "BUSINESS_SPONSOR_APPROVED" or credit_request.workflow_state.name == "CREDIT_ANALYSIS_IN_PROGRESS" %}
+                <span class="badge bg-warning text-dark mb-2">Pending</span>
+                <p class="mb-2">Ready to begin analysis</p>
+                <div class="d-grid gap-2">
+                  <a href="{% url 'creditanalysis_create' %}?credit_request={{ credit_request.id }}" class="btn btn-sm btn-primary">
+                    Start Credit Analysis
+                  </a>
+                </div>
+              {% else %}
+                <span class="badge bg-secondary mb-2">Not Started</span>
+                <p class="mb-2">Awaiting business sponsor approval</p>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Legal Review Process -->
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-header text-bg-primary">
+            Legal Review
+          </div>
+          <div class="card-body">
+            {% if credit_request.legal_review %}
+              {% if credit_request.legal_review.is_draft %}
+                <span class="badge bg-secondary mb-2">Draft</span>
+                <p class="mb-2">Last updated: {{ credit_request.legal_review.updated_at|date:"M d, Y" }}</p>
+                <div class="d-grid gap-2">
+                  <a href="{% url 'legalreview_update' credit_request.legal_review.id %}" class="btn btn-sm btn-outline-primary">
+                    Edit Draft
+                  </a>
+                </div>
+              {% else %}
+                <span class="badge bg-success mb-2">Completed</span>
+                <p class="mb-2">Completed by: {{ credit_request.legal_review.reviewer.get_full_name }}</p>
+                <p class="mb-2">Date: {{ credit_request.legal_review.updated_at|date:"M d, Y" }}</p>
+                <div class="d-grid gap-2">
+                  <a href="#" class="btn btn-sm btn-outline-primary">
+                    View Legal Review
+                  </a>
+                </div>
+              {% endif %}
+            {% else %}
+              {% if credit_request.workflow_state.name == "BUSINESS_SPONSOR_APPROVED" or credit_request.workflow_state.name == "LEGAL_REVIEW_IN_PROGRESS" %}
+                <span class="badge bg-warning text-dark mb-2">Pending</span>
+                <p class="mb-2">Ready to begin legal review</p>
+                <div class="d-grid gap-2">
+                  <a href="{% url 'legalreview_create' %}?credit_request={{ credit_request.id }}" class="btn btn-sm btn-primary">
+                    Start Legal Review
+                  </a>
+                </div>
+              {% else %}
+                <span class="badge bg-secondary mb-2">Not Started</span>
+                <p class="mb-2">Awaiting business sponsor approval</p>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Credit Questionnaire Process -->
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-header text-bg-primary">
+            Credit Questionnaire
+          </div>
+          <div class="card-body">
+            {% if credit_request.questionnaire_required %}
+              {% if credit_request.questionnaire %}
+                {% if credit_request.questionnaire.is_draft %}
+                  <span class="badge bg-secondary mb-2">Draft</span>
+                  <p class="mb-2">Last updated: {{ credit_request.questionnaire.updated_at|date:"M d, Y" }}</p>
+                  <div class="d-grid gap-2">
+                    <a href="{% url 'creditquestionnaire_update' credit_request.questionnaire.id %}" class="btn btn-sm btn-outline-primary">
+                      Edit Draft
+                    </a>
+                  </div>
+                {% else %}
+                  <span class="badge bg-success mb-2">Completed</span>
+                  <p class="mb-2">Completed by: {{ credit_request.questionnaire.author.get_full_name }}</p>
+                  <p class="mb-2">Date: {{ credit_request.questionnaire.updated_at|date:"M d, Y" }}</p>
+                  <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                      View Questionnaire
+                    </a>
+                  </div>
+                {% endif %}
+              {% else %}
+                {% if credit_request.workflow_state.name == "BUSINESS_SPONSOR_APPROVED" or credit_request.workflow_state.name == "QUESTIONNAIRE_PENDING" %}
+                  <span class="badge bg-warning text-dark mb-2">Pending</span>
+                  <p class="mb-2">Ready to begin questionnaire</p>
+                  <div class="d-grid gap-2">
+                    <a href="{% url 'creditquestionnaire_create' %}?credit_request={{ credit_request.id }}" class="btn btn-sm btn-primary">
+                      Start Questionnaire
+                    </a>
+                  </div>
+                {% else %}
+                  <span class="badge bg-secondary mb-2">Not Started</span>
+                  <p class="mb-2">Awaiting business sponsor approval</p>
+                {% endif %}
+              {% endif %}
+            {% else %}
+              <span class="badge bg-info mb-2">Not Required</span>
+              <p class="mb-2">Questionnaire is not required for this request</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Progress bar at the bottom -->
+    <div class="mt-3">
+      <h6>Overall Completion Status</h6>
+      {% with total=3 %}
+        {% with completed=credit_request.completed_processes_count|default:0 %}
+          {% with percent=completed|floatformat:0|mul:100|div:total %}
+            <div class="progress">
+              <div class="progress-bar bg-success" role="progressbar" style="width: {{ percent }}%" 
+                  aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100">
+                {{ percent }}%
+              </div>
+            </div>
+            <small class="text-muted mt-1 d-block">{{ completed }} of {{ total }} required processes completed</small>
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Login</h2>
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please enter a correct username and password. Note that both fields may be case-sensitive.
+                    </div>
+                {% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Password</label>
+                        {{ form.password }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

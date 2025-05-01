@@ -1,0 +1,36 @@
+erDiagram
+    USER ||--o{ CREDITREQUEST : submits
+    USER ||--o{ CREDITREQUEST : assigned_analyst
+    USER ||--o{ CREDITREQUEST : business_sponsor
+
+    CREDITREQUEST ||--o{ CREDITLIMIT : has
+    CREDITLIMIT }o--|| CREDITREQUEST : credit_request
+
+    CREDITREQUEST ||--o{ CREDITQUESTIONNAIRE : has
+    CREDITREQUEST ||--o{ LEGALREVIEW : has
+    CREDITREQUEST ||--o{ CREDITANALYSIS : has
+    CREDITREQUEST ||--o{ CREDITPAPER : has
+    CREDITREQUEST ||--o{ DOCUMENT : has
+
+    DOCUMENT }o--|| DOCUMENTTYPE : type
+    DOCUMENT }o--|| USER : uploaded_by
+    DOCUMENT }o--|| DOCUMENT : previous_version
+
+    CREDITQUESTIONNAIRE }o--|| USER : author
+    LEGALREVIEW }o--|| USER : reviewer
+    CREDITANALYSIS }o--|| USER : analyst
+    CREDITPAPER }o--|| USER : compiled_by
+
+    CREDITREQUEST }o--|| WORKFLOWSTATE : workflow_state
+
+    NOTIFICATION }o--|| NOTIFICATIONTYPE : type
+    NOTIFICATION }o--|| USER : recipient
+    NOTIFICATION }o--|| USER : actor
+
+    NOTIFICATIONPREFERENCE }o--|| USER : user
+    NOTIFICATIONPREFERENCE }o--|| NOTIFICATIONTYPE : type
+
+    NOTIFICATIONDELIVERY }o--|| NOTIFICATION : notification
+
+    WORKFLOWSTATETRANSITION }o--|| WORKFLOWSTATE : from_state
+    WORKFLOWSTATETRANSITION }o--|| WORKFLOWSTATE : to_state

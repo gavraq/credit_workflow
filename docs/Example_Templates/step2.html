@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Credit Request - Relationship Information</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+    <!-- Page-specific CSS -->
+    
+    <style>
+        :root {
+            --icbc-red: #e31937; /* ICBC red */
+            --standard-blue: #0c4da2; /* Standard Bank blue */
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --dark-gray: #666666;
+            --white: #ffffff;
+            --font-primary: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            font-family: var(--font-primary);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--standard-blue);
+            padding-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link {
+            padding: 10px 16px;
+            color: var(--white);
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            color: var(--white);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--icbc-red);
+        }
+        
+        .sidebar-link i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-heading {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar {
+            background-color: var(--standard-blue);
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+        }
+
+        .sidebar-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        main {
+            margin-left: 16.666667%;
+            background-color: var(--light-gray);
+            min-height: calc(100vh - 56px);
+            padding: 2rem;
+        }
+
+        .content-wrapper {
+            max-width: 100%;
+        }
+        
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .card-header {
+            background-color: var(--white);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 3px 7px;
+            border-radius: 50%;
+            background: var(--icbc-red);
+            color: var(--white);
+            font-size: 0.7rem;
+        }
+        
+        .workflow-state {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        
+        .priority-high {
+            background-color: var(--icbc-red);
+            color: var(--white);
+        }
+        
+        .priority-medium {
+            background-color: #F58220;
+            color: var(--white);
+        }
+        
+        .priority-low {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .multi-step-progress {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step .circle {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step.completed .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step .label {
+            font-size: 0.85rem;
+        }
+        
+        .step::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: var(--light-gray);
+            top: 15px;
+            left: 50%;
+            z-index: 1;
+        }
+        
+        .step:last-child::after {
+            display: none;
+        }
+        
+        .step.active::after, .step.completed::after {
+            background-color: var(--standard-blue);
+        }
+        
+        .btn-primary {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+            color: var(--white);
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+        }
+        
+        .btn-danger {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-danger:hover, .btn-danger:focus {
+            background-color: #b31930;
+            border-color: #b31930;
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--standard-blue) !important;
+        }
+        
+        .page-link {
+            color: var(--standard-blue);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .navbar-brand img {
+            margin-right: 10px;
+            height: 35px;
+        }
+        
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link {
+            color: var(--standard-blue);
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link:focus {
+            color: var(--icbc-red);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        a {
+            color: var(--standard-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--icbc-red);
+        }
+        
+        .logo-icbc {
+            color: var(--icbc-red);
+            font-weight: bold;
+        }
+        
+        .logo-standard {
+            color: var(--standard-blue);
+            font-weight: bold;
+        }
+    </style>
+    
+    
+</head>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Credit Request - Limit Requests</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+    <!-- Page-specific CSS -->
+    
+    <style>
+        :root {
+            --icbc-red: #e31937; /* ICBC red */
+            --standard-blue: #0c4da2; /* Standard Bank blue */
+            --text-color: #333333;
+            --light-gray: #f5f5f5;
+            --dark-gray: #666666;
+            --white: #ffffff;
+            --font-primary: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            font-family: var(--font-primary);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--standard-blue);
+            padding-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link {
+            padding: 10px 16px;
+            color: var(--white);
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            color: var(--white);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--icbc-red);
+        }
+        
+        .sidebar-link i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-heading {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar {
+            background-color: var(--standard-blue);
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 0;
+        }
+
+        .sidebar-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        main {
+            margin-left: 16.666667%;
+            background-color: var(--light-gray);
+            min-height: calc(100vh - 56px);
+            padding: 2rem;
+        }
+
+        .content-wrapper {
+            max-width: 100%;
+        }
+        
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .card-header {
+            background-color: var(--white);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 3px 7px;
+            border-radius: 50%;
+            background: var(--icbc-red);
+            color: var(--white);
+            font-size: 0.7rem;
+        }
+        
+        .workflow-state {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        
+        .priority-high {
+            background-color: var(--icbc-red);
+            color: var(--white);
+        }
+        
+        .priority-medium {
+            background-color: #F58220;
+            color: var(--white);
+        }
+        
+        .priority-low {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .multi-step-progress {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step .circle {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step.completed .circle {
+            background-color: var(--standard-blue);
+            color: var(--white);
+        }
+        
+        .step .label {
+            font-size: 0.85rem;
+        }
+        
+        .step::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: var(--light-gray);
+            top: 15px;
+            left: 50%;
+            z-index: 1;
+        }
+        
+        .step:last-child::after {
+            display: none;
+        }
+        
+        .step.active::after, .step.completed::after {
+            background-color: var(--standard-blue);
+        }
+        
+        .btn-primary {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+            color: var(--white);
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+        }
+        
+        .btn-danger {
+            background-color: var(--icbc-red);
+            border-color: var(--icbc-red);
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-danger:hover, .btn-danger:focus {
+            background-color: #b31930;
+            border-color: #b31930;
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--standard-blue) !important;
+        }
+        
+        .page-link {
+            color: var(--standard-blue);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--standard-blue);
+            border-color: var(--standard-blue);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .navbar-brand img {
+            margin-right: 10px;
+            height: 35px;
+        }
+        
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link {
+            color: var(--standard-blue);
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link:focus {
+            color: var(--icbc-red);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        a {
+            color: var(--standard-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--icbc-red);
+        }
+        
+        .logo-icbc {
+            color: var(--icbc-red);
+            font-weight: bold;
+        }
+        
+        .logo-standard {
+            color: var(--standard-blue);
+            font-weight: bold;
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/static/logo.jpg" alt="ICBC Standard Bank Logo" class="d-inline-block align-top">
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="/notifications/">
+                            <i class="fas fa-bell"></i> Notifications
+                            
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> Monika Houser
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/logout/">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-content">
+                <a href="/" class="sidebar-link ">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="/requests/create/" class="sidebar-link">
+                    <i class="fas fa-plus-circle"></i> New Request
+                </a>
+                <a href="/counterparties/" class="sidebar-link ">
+                    <i class="fas fa-building"></i> Counterparties
+                </a>
+                <hr class="bg-secondary">
+                <div class="sidebar-heading text-white px-3 py-2">
+                    <small>MY REQUESTS</small>
+                </div>
+                <a href="/?filter=assigned" class="sidebar-link">
+                    <i class="fas fa-tasks"></i> Assigned to Me
+                    
+                </a>
+                <a href="/?filter=originated" class="sidebar-link">
+                    <i class="fas fa-file-alt"></i> My Requests
+                    
+                </a>
+                <a href="/?filter=approval" class="sidebar-link">
+                    <i class="fas fa-check-circle"></i> Pending Approval
+                    
+                </a>
+                </div>
+            </nav>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Messages -->
+
+                
+                
+                
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>New Credit Request</h2>
+        <p class="text-muted">Step 2: Limit Requests</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="multi-step-progress mb-4">
+    <div class="step completed">
+        <div class="circle">1</div>
+        <div class="label">Basic Information</div>
+    </div>
+    <div class="step active">
+        <div class="circle">2</div>
+        <div class="label">Limit Requests</div>
+    </div>
+    <div class="step">
+        <div class="circle">3</div>
+        <div class="label">Relationship Information</div>
+    </div>
+    <div class="step">
+        <div class="circle">4</div>
+        <div class="label">Business Justification</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Limit Requests</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="Df4pLoxorwr0ZRK7IGfOxvS58PqNorAu9r2BppZQno3OZDlJ3v7Yp4SDXQKp4Xxl">
+            
+            <input type="hidden" name="limits-TOTAL_FORMS" value="2" id="id_limits-TOTAL_FORMS"><input type="hidden" name="limits-INITIAL_FORMS" value="1" id="id_limits-INITIAL_FORMS"><input type="hidden" name="limits-MIN_NUM_FORMS" value="1" id="id_limits-MIN_NUM_FORMS"><input type="hidden" name="limits-MAX_NUM_FORMS" value="1000" id="id_limits-MAX_NUM_FORMS">
+            
+            <table class="table table-bordered" id="limit-requests-table">
+                <thead>
+                    <tr>
+                        <th>Limit Type</th>
+                        <th>Existing Amount (M)</th>
+                        <th>Existing Tenor (months)</th>
+                        <th>Proposed Amount (M)</th>
+                        <th>Proposed Tenor (months)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                        <tr class="limit-form ">
+                            <input type="hidden" name="limits-0-id" value="6" id="id_limits-0-id">
+                            <td>
+                                <select name="limits-0-limit_type" class="form-select" id="id_limits-0-limit_type">
+  <option value="">-- Select Limit Type --</option>
+
+  <option value="9">IM Position</option>
+
+  <option value="10" selected>IM Waiver</option>
+
+  <option value="4">Loan</option>
+
+  <option value="5">Metal Lease</option>
+
+  <option value="3">Nostro (Primary)</option>
+
+  <option value="6">Risk Transfer</option>
+
+  <option value="7">Securities Financing</option>
+
+  <option value="1">Trading (Pre-Settlement)</option>
+
+  <option value="2">Trading (Settlement)</option>
+
+  <option value="8">TRS</option>
+
+  <option value="11">VM Waiver</option>
+
+</select>
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-0-existing_amount" value="1.00" step="0.01" class="form-control" placeholder="0.00" id="id_limits-0-existing_amount">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-0-existing_tenor" value="2" class="form-control" placeholder="0" id="id_limits-0-existing_tenor">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-0-proposed_amount" value="2.00" step="0.01" class="form-control" placeholder="0.00" id="id_limits-0-proposed_amount">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-0-proposed_tenor" value="4" class="form-control" placeholder="0" id="id_limits-0-proposed_tenor">
+                                
+                            </td>
+                            <td>
+                                
+                                    <div class="form-check">
+                                        <input type="checkbox" name="limits-0-DELETE" id="id_limits-0-DELETE">
+                                        <label class="form-check-label" for="id_limits-0-DELETE">Delete</label>
+                                    </div>
+                                
+                            </td>
+                        </tr>
+                    
+                        <tr class="limit-form ">
+                            <input type="hidden" name="limits-1-id" id="id_limits-1-id">
+                            <td>
+                                <select name="limits-1-limit_type" class="form-select" id="id_limits-1-limit_type">
+  <option value="" selected>-- Select Limit Type --</option>
+
+  <option value="9">IM Position</option>
+
+  <option value="10">IM Waiver</option>
+
+  <option value="4">Loan</option>
+
+  <option value="5">Metal Lease</option>
+
+  <option value="3">Nostro (Primary)</option>
+
+  <option value="6">Risk Transfer</option>
+
+  <option value="7">Securities Financing</option>
+
+  <option value="1">Trading (Pre-Settlement)</option>
+
+  <option value="2">Trading (Settlement)</option>
+
+  <option value="8">TRS</option>
+
+  <option value="11">VM Waiver</option>
+
+</select>
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-1-existing_amount" value="0" step="0.01" class="form-control" placeholder="0.00" id="id_limits-1-existing_amount">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-1-existing_tenor" value="0" class="form-control" placeholder="0" id="id_limits-1-existing_tenor">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-1-proposed_amount" step="0.01" class="form-control" placeholder="0.00" id="id_limits-1-proposed_amount">
+                                
+                            </td>
+                            <td>
+                                <input type="number" name="limits-1-proposed_tenor" class="form-control" placeholder="0" id="id_limits-1-proposed_tenor">
+                                
+                            </td>
+                            <td>
+                                
+                                    <div class="form-check">
+                                        <input type="checkbox" name="limits-1-DELETE" id="id_limits-1-DELETE">
+                                        <label class="form-check-label" for="id_limits-1-DELETE">Delete</label>
+                                    </div>
+                                
+                            </td>
+                        </tr>
+                    
+                </tbody>
+            </table>
+            
+            <div class="mb-3">
+                <button type="button" id="add-limit-request" class="btn btn-outline-secondary">
+                    <i class="fas fa-plus"></i> Add Limit Request
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="/requests/create/1/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="submit" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+            </main>
+        </div>
+        
+        <!-- Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
+        <!-- Custom JavaScript -->
+        <script>
+            // Enable tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+            
+            // Auto-hide alerts after 5 seconds
+            window.setTimeout(function() {
+                $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                    $(this).remove(); 
+                });
+            }, 5000);
+            
+            // Toggle sidebar on mobile
+            document.querySelector('.navbar-toggler').addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('show');
+            });
+        </script>
+        
+        
+<script>
+    $(document).ready(function() {
+        // Add limit request button handler
+        $('#add-limit-request').click(function() {
+            // Get the total number of forms
+            var totalForms = $('#id_limits-TOTAL_FORMS');
+            var currentCount = parseInt(totalForms.val());
+            
+            // Clone the last form
+            var newForm = $('.limit-form:last').clone(true);
+            
+            // Update form attributes with new index
+            newForm.find(':input').each(function() {
+                var name = $(this).attr('name');
+                if (name) {
+                    name = name.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                    $(this).attr('name', name);
+                    
+                    var id = $(this).attr('id');
+                    if (id) {
+                        id = id.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                        $(this).attr('id', id);
+                    }
+                    
+                    // Clear values for new form
+                    if (!$(this).is(':checkbox')) {
+                        $(this).val('');
+                    } else {
+                        $(this).prop('checked', false);
+                    }
+                }
+            });
+            
+            // Update label for attributes
+            newForm.find('label').each(function() {
+                var forAttr = $(this).attr('for');
+                if (forAttr) {
+                    forAttr = forAttr.replace(/-\d+-(\w+)$/, '-' + currentCount + '-$1');
+                    $(this).attr('for', forAttr);
+                }
+            });
+            
+            // Make sure the new form is visible (in case we cloned a deleted one)
+            newForm.removeClass('d-none');
+            
+            // Append the new form
+            $('.limit-form:last').after(newForm);
+            
+            // Increment the form count
+            totalForms.val(currentCount + 1);
+        });
+        
+        // Delete button handler
+        $('.limit-form input[type="checkbox"][name$="-DELETE"]').change(function() {
+            if ($(this).is(':checked')) {
+                $(this).closest('tr').addClass('table-danger');
+            } else {
+                $(this).closest('tr').removeClass('table-danger');
+            }
+        });
+    });
+</script>
+
+    </body>
+    </html>

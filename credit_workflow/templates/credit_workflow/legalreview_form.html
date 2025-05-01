@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block sidebar %}
+<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
+  <div class="sidebar-sticky">
+    <ul class="nav flex-column mb-2 mt-4">
+      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
+    </ul>
+    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-list me-2"></i>My Requests</a></li>
+      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-2">{% if form.instance.pk %}Edit{% else %}New{% endif %} Legal Review</h2>
+    
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Legal Review Details</h5>
+                
+                <div class="row g-3">
+                    <!-- Credit Request -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
+                        {{ form.credit_request|add_class:'form-select' }}
+                        {% if form.credit_request.errors %}
+                            <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Select the credit request this legal review is for</small>
+                    </div>
+                    
+                    <!-- Comments -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.comments.id_for_label }}" class="form-label">Legal Review Comments</label>
+                        {{ form.comments|add_class:'form-control'|attr:'rows:10' }}
+                        {% if form.comments.errors %}
+                            <div class="invalid-feedback d-block">{{ form.comments.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Please provide detailed legal analysis and recommendations</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mt-4">
+                    <i class="fas fa-info-circle"></i> The legal review should address all relevant legal considerations, risks, and mitigating factors related to the credit request.
+                </div>
+            </div>
+        </div>
+        
+        <input type="hidden" name="reviewer" value="{{ request.user.pk }}">
+        
+        <div class="d-flex justify-content-end">
+            <button type="submit" name="save_draft" class="btn btn-secondary me-2">Save as Draft</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
