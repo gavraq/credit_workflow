@@ -1,45 +1,38 @@
-# Credit Risk Workflow System
+# Credit Risk Workflow Application
 
-A Django-based web application for managing and analyzing credit risk workflows.
+A Django application for managing credit risk workflows.
 
-## Features
+## Project Structure
 
-- User authentication and role-based access
-- Credit application submission and review
-- Automated risk scoring
-- Document upload and management
-- Audit trails and reporting
+This application follows a Django project structure with the following main components:
 
-## Quick Start
+- `credit_workflow`: Main application for credit request management
+- `workflow`: State machine implementation for workflow management
+- `users`: User management application
+- `notifications`: Notification system for workflow events
+- `documents`: Document management for credit requests
 
-```bash
-# Clone the repo
-git clone https://github.com/your-org/credit_workflow.git
-cd credit_workflow
+## Installation
 
-# Set up virtual environment and install dependencies
-uv venv .venv
-uv pip install -r requirements.txt
+1. Clone the repository
+2. Create a virtual environment
+3. Install dependencies with `pip install -r requirements.txt`
+4. Run migrations with `python manage.py migrate`
+5. Create a superuser with `python manage.py createsuperuser`
+6. Start the development server with `python manage.py runserver`
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database and secret settings
+## Workflow Stages
 
-# Apply migrations and start the server
-uv run python manage.py migrate
-uv run python manage.py runserver
-```
-
-Visit [http://localhost:8000](http://localhost:8000) to get started.
-
-## Documentation
-
-- [Installation Guide](docs/installation.md)
-- [Developer Guidelines](docs/developer_guidelines.md)
-- [System Architecture Overview](docs/architecture.md)
-- [API Reference](docs/api/)
-- [Setup Guides](docs/setup/)
+1. Credit Request Submission
+2. Credit Review
+3. Business Sponsorship
+4. Parallel Processing:
+   - Credit Questionnaire
+   - Legal Review
+   - Credit Analysis
+5. Credit Paper Compilation
+6. Final Approval
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+This project is private and proprietary.
