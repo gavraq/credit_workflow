@@ -1,55 +1,69 @@
-{% extends 'base.html' %}
+{% extends 'credit_workflow/base.html' %}
 {% load widget_tweaks %}
+{% load static %}
 
-{% block sidebar %}
-<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
-  <div class="sidebar-sticky">
-    <ul class="nav flex-column mb-2 mt-4">
-      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
-    </ul>
-    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-list me-2"></i>My Requests</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
-    </ul>
-  </div>
-</nav>
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-2">{% if form.instance.pk %}Edit{% else %}New{% endif %} Credit Questionnaire</h2>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if form.instance.pk %}Edit{% else %}New{% endif %} Credit Questionnaire</h1>
+    </div>
     
     <form method="post" novalidate>
         {% csrf_token %}
         {{ form.non_field_errors }}
         
         <!-- Credit Request Selection -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Credit Request Information</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">Credit Request Information</h5>
                 
                 <div class="row g-3">
                     <!-- Credit Request -->
-                    <div class="col-12 mb-3">
-                        <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
-                        {{ form.credit_request|add_class:'form-select' }}
-                        {% if form.credit_request.errors %}
-                            <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
-                        {% endif %}
-                        <small class="text-muted">Select the credit request this questionnaire is for</small>
-                    </div>
+                    {% if request.GET.credit_request %}
+                        <!-- Credit Request is pre-selected from URL, show it as text and keep as hidden field -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Credit Request</label>
+                            <div class="form-control-plaintext">
+                                {% for cr in form.credit_request.field.queryset %}
+                                    {% if cr.id|stringformat:"s" == request.GET.credit_request %}
+                                        <strong>Credit Request #{{ cr.request_number }}</strong>
+                                        {% if cr.title %}<div class="text-muted">{{ cr.title }}</div>{% endif %}
+                                        <div class="small text-muted">Counterparty: {{ cr.counterparty.name }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {{ form.credit_request|add_class:'d-none' }}
+                            {% if form.credit_request.errors %}
+                                <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- No pre-selected Credit Request, show dropdown -->
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
+                            {{ form.credit_request|add_class:'form-select' }}
+                            {% if form.credit_request.errors %}
+                                <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Select the credit request this questionnaire is for</small>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         
         <!-- Counterparty's Business Model Section -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Counterparty's Business Model</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">COUNTERPARTY'S BUSINESS MODEL</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -66,9 +80,11 @@
         </div>
         
         <!-- Trading Activity / Rationale for Limits -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Trading Activity / Rationale for Limits</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">TRADING ACTIVITY / RATIONALE FOR LIMITS</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -100,9 +116,11 @@
         </div>
         
         <!-- Policies and Governance -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Policies and Governance</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">POLICIES AND GOVERNANCE</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -114,9 +132,11 @@
         </div>
         
         <!-- Hedge Effectiveness & Accounting -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Hedge Effectiveness & Accounting</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">HEDGE EFFECTIVENESS & ACCOUNTING</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -133,9 +153,11 @@
         </div>
         
         <!-- Stress Testing -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Stress Testing</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">STRESS TESTING</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -152,9 +174,11 @@
         </div>
         
         <!-- Notional Positions -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Notional Positions</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">NOTIONAL POSITIONS</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -181,9 +205,11 @@
         </div>
         
         <!-- Liquidity Management -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Liquidity Management</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">LIQUIDITY MANAGEMENT</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -220,9 +246,11 @@
         </div>
         
         <!-- Physical Positions -->
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Physical Positions</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">PHYSICAL POSITIONS</h5>
                 
                 <div class="row g-3">
                     <div class="col-12 mb-3">
@@ -284,20 +312,28 @@
 // JavaScript to compile all detailed fields into the main content field on form submission
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
+    
+    // Define the sections and fields structure
+    const sections = [
+        { title: 'COUNTERPARTY\'S BUSINESS MODEL', fields: ['business_model_details', 'key_suppliers_customers'] },
+        { title: 'TRADING ACTIVITY / RATIONALE FOR LIMITS', fields: ['metals_traded', 'trading_flow_drivers', 'position_size_determinants', 'expected_tenor', 'strategic_hedging'] },
+        { title: 'POLICIES AND GOVERNANCE', fields: ['policy_determination'] },
+        { title: 'HEDGE EFFECTIVENESS & ACCOUNTING', fields: ['basis_risk_volume', 'hedge_accounting'] },
+        { title: 'STRESS TESTING', fields: ['stress_testing', 'stress_governance'] },
+        { title: 'NOTIONAL POSITIONS', fields: ['notional_value', 'icbcs_proportion', 'total_position_size', 'business_context'] },
+        { title: 'LIQUIDITY MANAGEMENT', fields: ['other_counterparties', 'available_lines', 'treasury_management', 'usd_cash_management', 'china_parent_details', 'margining_details'] },
+        { title: 'PHYSICAL POSITIONS', fields: ['repo_line_size', 'total_financing_lines', 'hedging_basis', 'metal_details', 'exit_risk_limits', 'other_trade_finance', 'balance_sheet_treatment'] }
+    ];
+    
+    // If this is an edit (form has existing content), parse and populate fields
+    const contentField = document.querySelector('[name="content"]');
+    if (contentField && contentField.value) {
+        parseAndPopulateFields(contentField.value, sections);
+    }
+    
+    // Handle form submission
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        // Get all the section textareas
-        const sections = [
-            { title: 'COUNTERPARTY\'S BUSINESS MODEL', fields: ['business_model_details', 'key_suppliers_customers'] },
-            { title: 'TRADING ACTIVITY / RATIONALE FOR LIMITS', fields: ['metals_traded', 'trading_flow_drivers', 'position_size_determinants', 'expected_tenor', 'strategic_hedging'] },
-            { title: 'POLICIES AND GOVERNANCE', fields: ['policy_determination'] },
-            { title: 'HEDGE EFFECTIVENESS & ACCOUNTING', fields: ['basis_risk_volume', 'hedge_accounting'] },
-            { title: 'STRESS TESTING', fields: ['stress_testing', 'stress_governance'] },
-            { title: 'NOTIONAL POSITIONS', fields: ['notional_value', 'icbcs_proportion', 'total_position_size', 'business_context'] },
-            { title: 'LIQUIDITY MANAGEMENT', fields: ['other_counterparties', 'available_lines', 'treasury_management', 'usd_cash_management', 'china_parent_details', 'margining_details'] },
-            { title: 'PHYSICAL POSITIONS', fields: ['repo_line_size', 'total_financing_lines', 'hedging_basis', 'metal_details', 'exit_risk_limits', 'other_trade_finance', 'balance_sheet_treatment'] }
-        ];
         
         // Build the content
         let content = '';
@@ -316,11 +352,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Set the compiled content to the main content field
-        document.querySelector('[name="content"]').value = content;
+        contentField.value = content;
         
         // Submit the form
         form.submit();
     });
+    
+    // Function to parse saved content and populate individual fields
+    function parseAndPopulateFields(content, sections) {
+        // Create a map of field names to their values
+        const fieldValues = {};
+        
+        // Parse the markdown content
+        const sectionRegex = /## ([^\n]+)\n\n([\s\S]*?)(?=\n## |$)/g;
+        const fieldRegex = /### ([^\n]+)\n([\s\S]*?)(?=\n### |\n\n|$)/g;
+        
+        let sectionMatch;
+        while ((sectionMatch = sectionRegex.exec(content)) !== null) {
+            const sectionTitle = sectionMatch[1].trim();
+            const sectionContent = sectionMatch[2];
+            
+            let fieldMatch;
+            while ((fieldMatch = fieldRegex.exec(sectionContent)) !== null) {
+                const fieldLabel = fieldMatch[1].trim();
+                const fieldValue = fieldMatch[2].trim();
+                
+                // Find the field name by matching the label
+                sections.forEach(section => {
+                    section.fields.forEach(fieldName => {
+                        const field = document.querySelector(`[name="${fieldName}"]`);
+                        if (field) {
+                            const label = field.closest('.mb-3').querySelector('.form-label').textContent.trim();
+                            if (label === fieldLabel) {
+                                fieldValues[fieldName] = fieldValue;
+                            }
+                        }
+                    });
+                });
+            }
+        }
+        
+        // Populate the fields with their values
+        Object.keys(fieldValues).forEach(fieldName => {
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            if (field) {
+                field.value = fieldValues[fieldName];
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

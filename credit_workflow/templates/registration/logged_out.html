@@ -1,0 +1,24 @@
+{% extends "credit_workflow/base.html" %}
+
+{% block title %}Logged Out{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Logged Out</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">You have been successfully logged out.</p>
+                    <p>Thank you for using the Credit Risk Workflow application.</p>
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Log In Again
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

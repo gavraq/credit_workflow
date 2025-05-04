@@ -1,0 +1,77 @@
+<!-- Legal Review Information -->
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>Status:</strong> 
+            {% if legal_review.is_draft %}
+            <span class="badge bg-warning">Draft</span>
+            {% else %}
+            <span class="badge bg-success">Completed</span>
+            {% endif %}
+        </p>
+        <p><strong>Reviewer:</strong> 
+            {% if legal_review.reviewer %}
+            {{ legal_review.reviewer.get_full_name|default:legal_review.reviewer.username }}
+            {% else %}
+            Not assigned
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-md-6">
+        {% if legal_review.completed_at %}
+        <p><strong>Completion Date:</strong> {{ legal_review.completed_at|date:"F d, Y" }}</p>
+        {% endif %}
+        {% if legal_review.agreement_type %}
+        <p><strong>Agreement Type:</strong> {{ legal_review.agreement_type }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if not legal_review.is_draft or can_edit_legal %}
+<div class="mt-3">
+    <h4>Legal Review Comments</h4>
+    <div class="p-3 bg-light rounded">
+        {{ legal_review.comments|default:"No comments provided"|linebreaks }}
+    </div>
+</div>
+
+{% if legal_review.termination_rights %}
+<div class="mt-3">
+    <h4>Termination Rights</h4>
+    <div class="p-3 bg-light rounded">
+        {{ legal_review.termination_rights|linebreaks }}
+    </div>
+</div>
+{% endif %}
+
+{% if legal_review.events_of_default %}
+<div class="mt-3">
+    <h4>Events of Default</h4>
+    <div class="p-3 bg-light rounded">
+        {{ legal_review.events_of_default|linebreaks }}
+    </div>
+</div>
+{% endif %}
+
+{% if legal_review.setoff_rights %}
+<div class="mt-3">
+    <h4>Set-off Rights</h4>
+    <div class="p-3 bg-light rounded">
+        {{ legal_review.setoff_rights|linebreaks }}
+    </div>
+</div>
+{% endif %}
+
+{% if legal_review.legal_commentary %}
+<div class="mt-3">
+    <h4>Legal Commentary</h4>
+    <div class="p-3 bg-light rounded">
+        {{ legal_review.legal_commentary|linebreaks }}
+    </div>
+</div>
+{% endif %}
+{% else %}
+<div class="alert alert-warning mt-3">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    This legal review is currently in draft mode and only visible to its author.
+</div>
+{% endif %}

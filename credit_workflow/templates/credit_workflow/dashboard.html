@@ -1,197 +1,239 @@
-{% extends "credit_workflow/base.html" %}
+{% extends 'credit_workflow/base.html' %}
 {% load static %}
-{% load workflow_tags %}
+{% load credit_workflow_extras %}
 
-{% block title %}Dashboard - Credit Risk Workflow{% endblock %}
-
-{% block sidebar %}
-{% include "credit_workflow/components/sidebar.html" %}
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .card-icon {
+        font-size: 2rem;
+    }
+    .workflow-stats {
+        position: relative;
+    }
+    .quick-links .list-group-item {
+        border-left: 4px solid transparent;
+    }
+    .quick-links .list-group-item:hover {
+        border-left-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    .progress-bg-draft { background-color: #6c757d; }
+    .progress-bg-submitted { background-color: #17a2b8; }
+    .progress-bg-review { background-color: #fd7e14; }
+    .progress-bg-sponsor { background-color: #28a745; }
+    .progress-bg-approved { background-color: #28a745; }
+    .progress-bg-rejected { background-color: #dc3545; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4 px-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="mb-0">Dashboard</h2>
-      <p class="text-muted">View and manage credit limit applications</p>
-    </div>
-    <div>
-      <a href="{% url 'creditrequest_wizard' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i> New Credit Limit Application
-      </a>
-    </div>
-  </div>
-
-  <!-- Search and Filter Panel -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="get" action="{% url 'creditrequest_list' %}">
-        <div class="row g-3">
-          <div class="col-md-5">
-            <label for="searchQuery" class="form-label">Search</label>
-            <input type="text" class="form-control" id="searchQuery" name="q" value="{{ search_query }}" placeholder="Search by ID, counterparty or title">
-          </div>
-          <div class="col-md-3">
-            <label for="statusFilter" class="form-label">Status</label>
-            <select class="form-select" id="statusFilter" name="state">
-              <option value="">All Statuses</option>
-              {% for state in workflow_states %}
-                <option value="{{ state.id }}" {% if state_filter == state.id %}selected{% endif %}>{{ state.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label for="priorityFilter" class="form-label">Priority</label>
-            <select class="form-select" id="priorityFilter" name="priority">
-              <option value="">All Priorities</option>
-              <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
-              <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
-              <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
-            </select>
-          </div>
-          <div class="col-md-1 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">
-              Filter
-            </button>
-          </div>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Credit Risk Workflow Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</p>
         </div>
-      </form>
     </div>
-  </div>
-  
-  <!-- Credit Limit Applications -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-header bg-light">
-      <h5 class="mb-0">Credit Limit Applications</h5>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Request ID</th>
-              <th>Counterparty</th>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Assignee</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for request in recent_requests %}
-            <tr>
-              <td>{{ request.request_number }}</td>
-              <td>{{ request.counterparty.name }}</td>
-              <td>{{ request.title|default:"Credit Limit Request" }}</td>
-              <td>{% workflow_state_badge request.workflow_state %}</td>
-              <td>
-                <span class="badge {% if request.priority == 'High' %}bg-danger{% elif request.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                  {{ request.priority }}
-                </span>
-              </td>
-              <td>
-                {% if request.assigned_analyst %}
-                  {{ request.assigned_analyst.get_full_name }}
-                {% else %}
-                  <span class="text-muted">Unassigned</span>
-                {% endif %}
-              </td>
-              <td>{{ request.created_at|date:"Y-m-d" }}</td>
-              <td>
-                <a href="{% url 'creditrequest_detail' request.id %}" class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-eye"></i> View
-                </a>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="8" class="text-center py-4">
-                <p class="text-muted mb-0">No credit requests found</p>
-                <a href="{% url 'creditrequest_wizard' %}" class="btn btn-sm btn-primary mt-3">
-                  <i class="bi bi-plus-circle me-1"></i> Create Request
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% if recent_requests and recent_requests.count > 10 %}
-    <div class="card-footer text-center">
-      <a href="{% url 'creditrequest_list' %}" class="btn btn-outline-primary">View All Requests</a>
-    </div>
-    {% endif %}
-  </div>
-  
-  <!-- Workflow State Summary -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Workflow State Summary</h5>
-        </div>
-        <div class="card-body">
-          <div class="workflow-state-summary">
-            <div class="row">
-              {% for state in workflow_states %}
-                <div class="col-md-3 col-sm-6 mb-3">
-                  <div class="card h-100">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">{% workflow_state_badge state %}</h6>
-                        <span class="badge bg-secondary rounded-pill">{{ state.request_count|default:"0" }}</span>
-                      </div>
-                      <div class="mt-3">
-                        <a href="{% url 'creditrequest_list' %}?state={{ state.id }}" class="btn btn-sm btn-outline-primary w-100">View Requests</a>
-                      </div>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Requests
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_requests }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-file-earmark-text card-icon text-gray-300"></i>
+                        </div>
                     </div>
-                  </div>
                 </div>
-              {% endfor %}
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Quick Stats -->
-  <div class="row">
-    <div class="col-md-3">
-      <div class="card shadow-sm bg-light mb-4">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Total Requests</h6>
-          <h3 class="mb-0">{{ total_requests|default:"0" }}</h3>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Approval
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_approval_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-hourglass-split card-icon text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm bg-light mb-4">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Pending Approval</h6>
-          <h3 class="mb-0">{{ pending_approval_count|default:"0" }}</h3>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Awaiting Sponsorship
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ awaiting_sponsorship_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check card-icon text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm bg-light mb-4">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Awaiting Sponsorship</h6>
-          <h3 class="mb-0">{{ awaiting_sponsorship_count|default:"0" }}</h3>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Completed This Month
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_this_month }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle card-icon text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm bg-light mb-4">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Completed This Month</h6>
-          <h3 class="mb-0">{{ completed_this_month|default:"0" }}</h3>
+
+    <div class="row">
+        <!-- Recent Requests Table -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Requests</h6>
+                    <a href="{% url 'assigned_requests' %}" class="btn btn-sm btn-primary">
+                        View All Assigned
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Request #</th>
+                                        <th>Counterparty</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in recent_requests %}
+                                        <tr>
+                                            <td>{{ request.request_number }}</td>
+                                            <td>{{ request.counterparty.name }}</td>
+                                            <td>
+                                                <span class="badge {% if request.workflow_state.name == 'APPROVED' %}bg-success{% elif request.workflow_state.name == 'REJECTED' %}bg-danger{% else %}bg-primary{% endif %}">
+                                                    {{ request.workflow_state.name|replace:"_: "|title }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if request.priority == 'High' %}bg-danger{% elif request.priority == 'Medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                                    {{ request.priority }}
+                                                </span>
+                                            </td>
+                                            <td>{{ request.submitted_at|date:"M d, Y"|default:"Draft" }}</td>
+                                            <td>
+                                                <a href="{% url 'creditrequest_detail' request.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No recent requests to display.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Right Column - Workflow Stats and Quick Links -->
+        <div class="col-lg-4">
+            <!-- Workflow Status Distribution -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Workflow Status Distribution</h6>
+                </div>
+                <div class="card-body workflow-stats">
+                    {% for state in workflow_states %}
+                        {% with count=state.creditrequest_set.all.count %}
+                            {% if count > 0 %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>{{ state.name|replace:"_: "|title }}</span>
+                                        <span>{{ count }} Requests</span>
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar progress-bg-{{ state.name|lower }}" 
+                                             role="progressbar" 
+                                             style="width: {{ count|percentage:total_requests }}%"
+                                             aria-valuenow="{{ count }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="{{ total_requests }}">
+                                            {{ count }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Links Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Links</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group quick-links">
+                        <a href="{% url 'creditrequest_create' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-plus-circle me-2"></i> New Credit Request
+                        </a>
+                        <a href="{% url 'assigned_requests' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-list-task me-2"></i> My Assigned Tasks
+                        </a>
+                        <a href="{% url 'creditrequest_list' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-earmark-text me-2"></i> All Credit Requests
+                        </a>
+                        <a href="{% url 'notification_center' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-bell me-2"></i> Notification Center
+                        </a>
+                        <a href="{% url 'notification_preferences' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-gear me-2"></i> Notification Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

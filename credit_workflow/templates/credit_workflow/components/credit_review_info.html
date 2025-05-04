@@ -1,0 +1,42 @@
+<!-- Credit Review Information -->
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>Assigned Analyst:</strong> 
+            {% if credit_request.assigned_analyst %}
+            {{ credit_request.assigned_analyst.get_full_name|default:credit_request.assigned_analyst.username }}
+            {% else %}
+            Not assigned
+            {% endif %}
+        </p>
+        <p><strong>DA Level:</strong> 
+            {% if credit_request.da_level %}
+            <span class="badge {% if credit_request.da_level <= 2 %}bg-danger{% elif credit_request.da_level <= 5 %}bg-warning{% else %}bg-info{% endif %}">
+                DA{{ credit_request.da_level }}
+            </span>
+            {% else %}
+            Not set
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-md-6">
+        <p><strong>Questionnaire Required:</strong> 
+            {% if credit_request.questionnaire_required %}
+            <span class="badge bg-success">Yes</span>
+            {% else %}
+            <span class="badge bg-secondary">No</span>
+            {% endif %}
+        </p>
+        {% if credit_request.credit_review_completed_at %}
+        <p><strong>Completed Date:</strong> {{ credit_request.credit_review_completed_at|date:"F d, Y" }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if credit_request.credit_review_notes %}
+<div class="mt-3">
+    <h4>Review Notes</h4>
+    <div class="p-3 bg-light rounded">
+        {{ credit_request.credit_review_notes|linebreaks }}
+    </div>
+</div>
+{% endif %}

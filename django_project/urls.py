@@ -19,6 +19,8 @@ from django.urls import path, include
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from django.contrib.auth import views as auth_views
+from users.views import custom_logout
 
 # Automated API documentation endpoints (Swagger UI and Redoc)
 # These provide live, interactive documentation for your API, always up-to-date with your codebase.
@@ -36,10 +38,22 @@ schema_view = get_schema_view(
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Create a list of Django's built-in auth URLs, excluding logout
+auth_urls = [
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+]
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/logout/', custom_logout, name='logout'),  # Custom logout view
+    path('accounts/', include(auth_urls)),  # All other auth URLs except logout
     path('users/', include('users.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

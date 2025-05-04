@@ -1,0 +1,126 @@
+{% extends 'credit_workflow/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Debug Questionnaire (ID: {{ questionnaire.id }})</h1>
+        <a href="{% url 'creditrequest_detail' questionnaire.credit_request.id %}" class="btn btn-primary">Back to Credit Request</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2>Basic Information</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>ID:</strong> {{ questionnaire.id }}</p>
+                    <p><strong>Credit Request:</strong> {{ questionnaire.credit_request }}</p>
+                    <p><strong>Author:</strong> {{ questionnaire.author }}</p>
+                    <p><strong>Is Draft:</strong> {{ questionnaire.is_draft }}</p>
+                    <p><strong>Created At:</strong> {{ questionnaire.created_at }}</p>
+                    <p><strong>Updated At:</strong> {{ questionnaire.updated_at }}</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2>Raw Content</h2>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-light p-3">{{ questionnaire.content }}</pre>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h2>Parsed Sections</h2>
+                </div>
+                <div class="card-body">
+                    {% if parsed_sections %}
+                        <ul class="list-group">
+                            {% for section_key, section_data in parsed_sections.items %}
+                                <li class="list-group-item">
+                                    <h4>{{ section_data.title }}</h4>
+                                    <p class="text-muted">Key: {{ section_key }}</p>
+                                    
+                                    {% if section_data.fields %}
+                                        <h5>Fields:</h5>
+                                        <ul class="list-group">
+                                            {% for field_key, field_content in section_data.fields.items %}
+                                                <li class="list-group-item">
+                                                    <strong>{{ field_key }}</strong>
+                                                    <div class="bg-light p-2 mt-2">
+                                                        {{ field_content|linebreaks }}
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-danger">No fields found</p>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-warning">No sections parsed</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h2>Model Properties</h2>
+                </div>
+                <div class="card-body">
+                    <h4>business_model_details</h4>
+                    {% if business_model_details %}
+                        <div class="bg-light p-3 mb-3">
+                            {{ business_model_details|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">No content</div>
+                    {% endif %}
+                    
+                    <h4>key_suppliers_customers</h4>
+                    {% if key_suppliers_customers %}
+                        <div class="bg-light p-3 mb-3">
+                            {{ key_suppliers_customers|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">No content</div>
+                    {% endif %}
+                    
+                    <h4>trading_activity_rationale</h4>
+                    {% if trading_activity_rationale %}
+                        <div class="bg-light p-3 mb-3">
+                            {{ trading_activity_rationale|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">No content</div>
+                    {% endif %}
+                    
+                    <h4>trading_policy_governance</h4>
+                    {% if trading_policy_governance %}
+                        <div class="bg-light p-3 mb-3">
+                            {{ trading_policy_governance|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">No content</div>
+                    {% endif %}
+                    
+                    <h4>liquidity_management</h4>
+                    {% if liquidity_management %}
+                        <div class="bg-light p-3 mb-3">
+                            {{ liquidity_management|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-3">No content</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!-- Business Sponsorship Information -->
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>Business Sponsor:</strong> 
+            {% if credit_request.business_sponsor %}
+            {{ credit_request.business_sponsor.get_full_name|default:credit_request.business_sponsor.username }}
+            {% else %}
+            Not assigned
+            {% endif %}
+        </p>
+        {% if credit_request.second_sponsor %}
+        <p><strong>Second Sponsor:</strong> {{ credit_request.second_sponsor.get_full_name|default:credit_request.second_sponsor.username }}</p>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <p><strong>Status:</strong> 
+            {% if credit_request.workflow_state.name == 'BUSINESS_SPONSOR_APPROVED' %}
+            <span class="badge bg-success">Approved</span>
+            {% elif credit_request.workflow_state.name == 'BUSINESS_SPONSORSHIP_PENDING' %}
+            <span class="badge bg-warning">Pending</span>
+            {% else %}
+            <span class="badge bg-secondary">Not Started</span>
+            {% endif %}
+        </p>
+        {% if credit_request.sponsorship_completed_at %}
+        <p><strong>Approval Date:</strong> {{ credit_request.sponsorship_completed_at|date:"F d, Y" }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if credit_request.sponsorship_notes %}
+<div class="mt-3">
+    <h4>Sponsorship Notes</h4>
+    <div class="p-3 bg-light rounded">
+        {{ credit_request.sponsorship_notes|linebreaks }}
+    </div>
+</div>
+{% endif %}

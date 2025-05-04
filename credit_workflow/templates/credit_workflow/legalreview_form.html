@@ -1,47 +1,232 @@
-{% extends 'base.html' %}
+{% extends 'credit_workflow/base.html' %}
 {% load widget_tweaks %}
+{% load static %}
 
-{% block sidebar %}
-<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
-  <div class="sidebar-sticky">
-    <ul class="nav flex-column mb-2 mt-4">
-      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
-    </ul>
-    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-list me-2"></i>My Requests</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
-    </ul>
-  </div>
-</nav>
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-2">{% if form.instance.pk %}Edit{% else %}New{% endif %} Legal Review</h2>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if form.instance.pk %}Edit{% else %}New{% endif %} Legal Review</h1>
+    </div>
     
     <form method="post" novalidate>
         {% csrf_token %}
         {{ form.non_field_errors }}
         
-        <div class="card shadow-sm mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Legal Review Details</h2>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-4">Legal Review Details</h5>
                 
                 <div class="row g-3">
                     <!-- Credit Request -->
-                    <div class="col-12 mb-3">
-                        <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
-                        {{ form.credit_request|add_class:'form-select' }}
-                        {% if form.credit_request.errors %}
-                            <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                    {% if request.GET.credit_request %}
+                        <!-- Credit Request is pre-selected from URL, show it as text and keep as hidden field -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Credit Request</label>
+                            <div class="form-control-plaintext">
+                                {% for cr in form.credit_request.field.queryset %}
+                                    {% if cr.id|stringformat:"s" == request.GET.credit_request %}
+                                        <strong>Credit Request #{{ cr.request_number }}</strong>
+                                        {% if cr.title %}<div class="text-muted">{{ cr.title }}</div>{% endif %}
+                                        <div class="small text-muted">Counterparty: {{ cr.counterparty.name }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {{ form.credit_request|add_class:'d-none' }}
+                            {% if form.credit_request.errors %}
+                                <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- No pre-selected Credit Request, show dropdown -->
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.credit_request.id_for_label }}" class="form-label">Credit Request</label>
+                            {{ form.credit_request|add_class:'form-select' }}
+                            {% if form.credit_request.errors %}
+                                <div class="invalid-feedback d-block">{{ form.credit_request.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Select the credit request this legal review is for</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Master Agreements -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Master Agreements</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- ISDA Master Agreement -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.isda_master_agreement.id_for_label }}" class="form-label">ISDA Master Agreement</label>
+                        {{ form.isda_master_agreement|add_class:'form-select' }}
+                        {% if form.isda_master_agreement.errors %}
+                            <div class="invalid-feedback d-block">{{ form.isda_master_agreement.errors }}</div>
                         {% endif %}
-                        <small class="text-muted">Select the credit request this legal review is for</small>
                     </div>
-                    
+
+                    <!-- Governing Law -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.governing_law.id_for_label }}" class="form-label">Governing Law</label>
+                        {{ form.governing_law|add_class:'form-select' }}
+                        {% if form.governing_law.errors %}
+                            <div class="invalid-feedback d-block">{{ form.governing_law.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Counterparty Additional Termination Events -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.counterparty_termination_events.id_for_label }}" class="form-label">Counterparty Additional Termination Events</label>
+                        {{ form.counterparty_termination_events|add_class:'form-control'|attr:'rows:3' }}
+                        {% if form.counterparty_termination_events.errors %}
+                            <div class="invalid-feedback d-block">{{ form.counterparty_termination_events.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., The Republic of Uzbekistan ceases to own/control at least 98.9% of counterparty's share capital</small>
+                    </div>
+
+                    <!-- Counterparty Additional Events of Default -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.counterparty_default_events.id_for_label }}" class="form-label">Counterparty Additional Events of Default</label>
+                        {{ form.counterparty_default_events|add_class:'form-control' }}
+                        {% if form.counterparty_default_events.errors %}
+                            <div class="invalid-feedback d-block">{{ form.counterparty_default_events.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., Not applicable</small>
+                    </div>
+
+                    <!-- Grace Period for Failure to Pay/Deliver -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.grace_period.id_for_label }}" class="form-label">Grace Period for Failure to Pay/Deliver</label>
+                        {{ form.grace_period|add_class:'form-control' }}
+                        {% if form.grace_period.errors %}
+                            <div class="invalid-feedback d-block">{{ form.grace_period.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., 1 Local Business Day</small>
+                    </div>
+
+                    <!-- Material Non-Standard Provisions -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.material_provisions.id_for_label }}" class="form-label">Material Non-Standard Provisions</label>
+                        {{ form.material_provisions|add_class:'form-control'|attr:'rows:3' }}
+                        {% if form.material_provisions.errors %}
+                            <div class="invalid-feedback d-block">{{ form.material_provisions.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Additional/bespoke features included at request of FIC Structuring for certain frontier-market counterparties</small>
+                    </div>
+
+                    <!-- Positive Netting Opinion -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.positive_netting_opinion.id_for_label }}" class="form-label">Positive Netting Opinion</label>
+                        {{ form.positive_netting_opinion|add_class:'form-select' }}
+                        {% if form.positive_netting_opinion.errors %}
+                            <div class="invalid-feedback d-block">{{ form.positive_netting_opinion.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credit Support Annex -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Credit Support Annex</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Credit Support Annex -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.credit_support_annex.id_for_label }}" class="form-label">Credit Support Annex</label>
+                        {{ form.credit_support_annex|add_class:'form-select' }}
+                        {% if form.credit_support_annex.errors %}
+                            <div class="invalid-feedback d-block">{{ form.credit_support_annex.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- CSA Type -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.csa_type.id_for_label }}" class="form-label">One/Two-way</label>
+                        {{ form.csa_type|add_class:'form-select' }}
+                        {% if form.csa_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.csa_type.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- IOSCO Compliant -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.iosco_compliant.id_for_label }}" class="form-label">IOSCO Compliant?</label>
+                        {{ form.iosco_compliant|add_class:'form-select' }}
+                        {% if form.iosco_compliant.errors %}
+                            <div class="invalid-feedback d-block">{{ form.iosco_compliant.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- CSA Threshold -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.csa_threshold.id_for_label }}" class="form-label">CSA Threshold</label>
+                        {{ form.csa_threshold|add_class:'form-control' }}
+                        {% if form.csa_threshold.errors %}
+                            <div class="invalid-feedback d-block">{{ form.csa_threshold.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., Not Applicable</small>
+                    </div>
+
+                    <!-- CSA Minimum Transfer Amount -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.csa_minimum_transfer.id_for_label }}" class="form-label">CSA Minimum Transfer Amount</label>
+                        {{ form.csa_minimum_transfer|add_class:'form-control' }}
+                        {% if form.csa_minimum_transfer.errors %}
+                            <div class="invalid-feedback d-block">{{ form.csa_minimum_transfer.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., USD250,000 (for both parties)</small>
+                    </div>
+
+                    <!-- CSA Independent Amount -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.csa_independent_amount.id_for_label }}" class="form-label">CSA Independent Amount</label>
+                        {{ form.csa_independent_amount|add_class:'form-control' }}
+                        {% if form.csa_independent_amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.csa_independent_amount.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">E.g., Zero (for both parties)</small>
+                    </div>
+
+                    <!-- Positive Collateral Opinion -->
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.positive_collateral_opinion.id_for_label }}" class="form-label">Positive Collateral Opinion</label>
+                        {{ form.positive_collateral_opinion|add_class:'form-select' }}
+                        {% if form.positive_collateral_opinion.errors %}
+                            <div class="invalid-feedback d-block">{{ form.positive_collateral_opinion.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- CSA Additional Provisions -->
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.csa_additional_provisions.id_for_label }}" class="form-label">Material Non-Standard Provisions</label>
+                        {{ form.csa_additional_provisions|add_class:'form-control'|attr:'rows:3' }}
+                        {% if form.csa_additional_provisions.errors %}
+                            <div class="invalid-feedback d-block">{{ form.csa_additional_provisions.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Additional/bespoke features included at request of FIC Structuring</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal Review Comments -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Legal Review Comments</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
                     <!-- Comments -->
                     <div class="col-12 mb-3">
                         <label for="{{ form.comments.id_for_label }}" class="form-label">Legal Review Comments</label>

@@ -9,6 +9,7 @@ dependencies = [
     "django-formtools>=2.5.1",
     "django-widget-tweaks>=1.5.0",
     "drf-yasg>=1.21.10",
+    "markdown>=3.8",
     "psycopg>=3.2.6",
     "python-dotenv>=1.1.0",
     "weasyprint>=65.1",

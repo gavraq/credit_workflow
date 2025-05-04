@@ -1,100 +1,204 @@
-{% extends 'base.html' %}
+{% extends 'credit_workflow/base.html' %}
+{% load static %}
 
-{% block sidebar %}
-<nav class="sidebar text-white" style="width: 220px; background-color: #174EA6; min-height: 100vh; padding: 0;">
-  <div class="sidebar-sticky">
-    <ul class="nav flex-column mb-2 mt-4">
-      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_create' %}"><i class="fas fa-plus-circle me-2"></i>New Request</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-users me-2"></i>Counterparties</a></li>
-    </ul>
-    <div class="px-3 text-uppercase small mt-4 mb-2">My Requests</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user-check me-2"></i>Assigned to Me</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="{% url 'creditrequest_list' %}"><i class="fas fa-list me-2"></i>My Requests</a></li>
-      <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-clock me-2"></i>Pending Approval</a></li>
-    </ul>
-    <div class="px-3 text-uppercase small mt-4 mb-2">Notifications</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_center' %}active{% endif %}" href="{% url 'notification_center' %}"><i class="fas fa-bell me-2"></i>Notification Center</a></li>
-      <li class="nav-item"><a class="nav-link text-white{% if request.resolver_match.url_name == 'notification_preferences' %}active{% endif %}" href="{% url 'notification_preferences' %}"><i class="fas fa-cog me-2"></i>Preferences</a></li>
-    </ul>
-  </div>
-</nav>
-{% endblock %}
+{% block title %}Notification Preferences{% endblock %}
 
 {% block content %}
-<div class="container mt-5 pt-3">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Notification Preferences</h2>
-    <a href="{% url 'notification_center' %}" class="btn btn-outline-primary"><i class="fas fa-bell me-2"></i>Back to Notifications</a>
-  </div>
-  
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <p class="text-muted mb-4">Configure which types of notifications you want to receive in the application.</p>
-      
-      <form method="post">
-        {% csrf_token %}
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>Notification Type</th>
-                <th class="text-center">Enabled</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for pref in form.instance.user.credit_notification_preferences.all %}
-              <tr>
-                <td>
-                  {% if pref.type == 'workflow' %}
-                  <span class="badge bg-primary">{{ pref.get_type_display }}</span>
-                  {% elif pref.type == 'document' %}
-                  <span class="badge bg-success">{{ pref.get_type_display }}</span>
-                  {% elif pref.type == 'reminder' %}
-                  <span class="badge bg-warning text-dark">{{ pref.get_type_display }}</span>
-                  {% else %}
-                  <span class="badge bg-secondary">{{ pref.get_type_display }}</span>
-                  {% endif %}
-                </td>
-                <td class="text-center">
-                  <div class="form-check form-switch d-flex justify-content-center">
-                    <input class="form-check-input" type="checkbox" name="enabled_{{ pref.pk }}" value="1" {% if pref.enabled %}checked{% endif %}>
-                  </div>
-                </td>
-                <td>
-                  {% if pref.type == 'workflow' %}
-                  Notifications about workflow state changes and approvals.
-                  {% elif pref.type == 'document' %}
-                  Notifications about document uploads and changes.
-                  {% elif pref.type == 'reminder' %}
-                  Reminder notifications for tasks and deadlines.
-                  {% else %}
-                  General application notifications.
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Notification Preferences</h1>
+        <a href="{% url 'notification_center' %}" class="btn btn-outline-primary">
+            <i class="bi bi-bell me-1"></i> Back to Notifications
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header py-3">
+                    <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Customize Your Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="all_notifications" 
+                                   {% if form.instance.email_notifications and form.instance.in_app_notifications and form.instance.status_change_notifications and form.instance.assignment_notifications and form.instance.comment_notifications and form.instance.due_date_reminders %}checked{% endif %}
+                                   data-bs-toggle="collapse" data-bs-target="#notification-settings">
+                            <label class="form-check-label fw-bold" for="all_notifications">Enable All Notifications</label>
+                            <div class="form-text">Toggle all notification settings at once</div>
+                        </div>
+                        
+                        <div id="notification-settings" class="collapse show">
+                            <!-- Notification Channels -->
+                            <h5 class="mb-3">Notification Channels</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        {{ form.email_notifications }}
+                                        <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
+                                            <i class="bi bi-envelope me-2"></i>Email Notifications
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4">Receive notifications via email</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        {{ form.in_app_notifications }}
+                                        <label class="form-check-label" for="{{ form.in_app_notifications.id_for_label }}">
+                                            <i class="bi bi-bell me-2"></i>In-App Notifications
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4">Receive notifications in the application</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Notification Types -->
+                            <h5 class="mb-3">Notification Types</h5>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.status_change_notifications }}
+                                        <label class="form-check-label" for="{{ form.status_change_notifications.id_for_label }}">
+                                            <i class="bi bi-arrow-repeat me-2"></i>Status Changes
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mb-4">When a credit request's status changes</div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.assignment_notifications }}
+                                        <label class="form-check-label" for="{{ form.assignment_notifications.id_for_label }}">
+                                            <i class="bi bi-person-plus me-2"></i>Assignments
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mb-4">When you're assigned to a credit request</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.comment_notifications }}
+                                        <label class="form-check-label" for="{{ form.comment_notifications.id_for_label }}">
+                                            <i class="bi bi-chat-left-text me-2"></i>Comments
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mb-4">When someone comments on your requests</div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.due_date_reminders }}
+                                        <label class="form-check-label" for="{{ form.due_date_reminders.id_for_label }}">
+                                            <i class="bi bi-calendar-check me-2"></i>Due Date Reminders
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mb-4">Receive reminders for upcoming deadlines</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Reminder Settings -->
+                            <h5 class="mb-3">Reminder Settings</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="{{ form.reminder_days_before.id_for_label }}" class="form-label">Send Reminders Days Before Due Date</label>
+                                    {{ form.reminder_days_before }}
+                                    <div class="form-text">Number of days before a deadline to send reminders</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.daily_digest.id_for_label }}" class="form-label">Notification Frequency</label>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="{{ form.daily_digest.html_name }}" 
+                                               id="notifications_immediate" value="false" 
+                                               {% if not form.instance.daily_digest %}checked{% endif %}>
+                                        <label class="form-check-label" for="notifications_immediate">
+                                            Immediate Notifications
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="{{ form.daily_digest.html_name }}" 
+                                               id="notifications_digest" value="true" 
+                                               {% if form.instance.daily_digest %}checked{% endif %}>
+                                        <label class="form-check-label" for="notifications_digest">
+                                            Daily Digest (once per day)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
+                            <button type="submit" class="btn btn-primary">Save Preferences</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         
-        <div class="d-flex justify-content-end mt-4">
-          <button type="submit" class="btn btn-primary">Save Preferences</button>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header py-3">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Information</h5>
+                </div>
+                <div class="card-body">
+                    <p>Configure how and when you receive notifications about activity in the Credit Risk Workflow application.</p>
+                    
+                    <h6 class="mt-4 mb-2">Email Notifications</h6>
+                    <p>Email notifications are sent to your registered email address. Make sure your email is up-to-date in your profile settings.</p>
+                    
+                    <h6 class="mt-4 mb-2">In-App Notifications</h6>
+                    <p>In-app notifications appear in the notification dropdown in the top navigation bar and in the Notification Center.</p>
+                    
+                    <h6 class="mt-4 mb-2">Daily Digest</h6>
+                    <p>When enabled, you'll receive a single digest email containing all notifications for the day, instead of individual emails for each notification.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header py-3">
+                    <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p>If you're having issues with your notification settings or not receiving expected notifications, please contact the support team.</p>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="mailto:support@example.com" class="btn btn-outline-primary">
+                            <i class="bi bi-envelope me-1"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-      </form>
     </div>
-  </div>
-  
-  <div class="card shadow-sm mt-4">
-    <div class="card-header bg-light">
-      <h5 class="card-title mb-0">About Notifications</h5>
-    </div>
-    <div class="card-body">
-      <p class="mb-0">Notifications help you stay updated on important events in the credit workflow process. You can view all your notifications in the <a href="{% url 'notification_center' %}">Notification Center</a>.</p>
-    </div>
-  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle "Enable All Notifications" toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const allNotificationsToggle = document.getElementById('all_notifications');
+        const notificationToggles = document.querySelectorAll('.form-check-input:not(#all_notifications)');
+        
+        // Update "All Notifications" toggle based on individual settings
+        function updateAllToggle() {
+            const allChecked = Array.from(notificationToggles).every(toggle => toggle.checked);
+            allNotificationsToggle.checked = allChecked;
+        }
+        
+        // Add event listeners to individual toggles
+        notificationToggles.forEach(toggle => {
+            toggle.addEventListener('change', updateAllToggle);
+        });
+        
+        // Handle "All Notifications" toggle change
+        allNotificationsToggle.addEventListener('change', function() {
+            const checked = this.checked;
+            notificationToggles.forEach(toggle => {
+                toggle.checked = checked;
+            });
+        });
+        
+        // Initial check
+        updateAllToggle();
+    });
+</script>
 {% endblock %}

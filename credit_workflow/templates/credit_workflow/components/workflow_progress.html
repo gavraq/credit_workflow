@@ -1,0 +1,31 @@
+{% load credit_workflow_extras %}
+<!-- Workflow Progress Bar Component -->
+<div class="workflow-progress mb-4">
+    <div class="progress-container">
+        {% for step in progress %}
+        <div class="progress-step {% if step.status == 'completed' %}completed{% elif step.status == 'current' %}current{% else %}pending{% endif %}">
+            <div class="step-circle">
+                {% if step.status == 'completed' %}
+                <i class="bi bi-check-lg"></i>
+                {% elif step.status == 'current' %}
+                <i class="bi bi-arrow-right"></i>
+                {% else %}
+                <i class="bi bi-clock"></i>
+                {% endif %}
+            </div>
+            <div class="step-label">{{ step.title }}</div>
+            <div class="step-dates">
+                {% if step.started_at %}
+                <small>Started: {{ step.started_at|date:"M d, Y" }}</small><br>
+                {% endif %}
+                {% if step.completed_at %}
+                <small>Completed: {{ step.completed_at|date:"M d, Y" }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% if not forloop.last %}
+        <div class="step-connector {% if step.status == 'completed' %}completed{% endif %}"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>

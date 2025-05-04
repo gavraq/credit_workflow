@@ -1,0 +1,138 @@
+{% load credit_workflow_extras %}
+<!-- Credit Request Information -->
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>Counterparty:</strong> {{ credit_request.counterparty.name }}</p>
+        {% if credit_request.counterparty.cif_number %}
+        <p><strong>CIF Number:</strong> {{ credit_request.counterparty.cif_number }}</p>
+        {% endif %}
+        <p><strong>Status:</strong> {{ credit_request.workflow_state.name|replace:"_: "|title }}</p>
+        <p><strong>Submitted By:</strong> {{ credit_request.submitter.get_full_name|default:credit_request.submitter.username }}</p>
+        {% if credit_request.submitted_at %}
+        <p><strong>Submitted Date:</strong> {{ credit_request.submitted_at|date:"F d, Y" }}</p>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <p><strong>Priority:</strong> 
+            <span class="badge {% if credit_request.priority == 'High' %}bg-danger{% elif credit_request.priority == 'Medium' %}bg-warning{% else %}bg-info{% endif %}">
+                {{ credit_request.priority }}
+            </span>
+        </p>
+        {% if credit_request.required_by_date %}
+        <p><strong>Required By:</strong> {{ credit_request.required_by_date|date:"F d, Y" }}</p>
+        {% endif %}
+        <p><strong>Business Sponsor:</strong> 
+            {% if credit_request.business_sponsor %}
+            {{ credit_request.business_sponsor.get_full_name|default:credit_request.business_sponsor.username }}
+            {% else %}
+            Not assigned
+            {% endif %}
+        </p>
+        {% if credit_request.second_sponsor %}
+        <p><strong>Second Sponsor:</strong> {{ credit_request.second_sponsor.get_full_name|default:credit_request.second_sponsor.username }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if credit_request.priority_justification %}
+<div class="mt-3">
+    <h4>Priority Justification</h4>
+    <p>{{ credit_request.priority_justification }}</p>
+</div>
+{% endif %}
+
+<!-- Limits -->
+<div class="mt-4">
+    <h4>Credit Limits</h4>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Limit Type</th>
+                    <th colspan="2">Existing</th>
+                    <th colspan="2">Proposed</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th>Amount (US$m)</th>
+                    <th>Tenor (months)</th>
+                    <th>Amount (US$m)</th>
+                    <th>Tenor (months)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for limit in credit_request.limits.all %}
+                <tr>
+                    <td>{{ limit.limit_type.name }}</td>
+                    <td>{{ limit.existing_limit_amount|default:"-" }}</td>
+                    <td>{{ limit.existing_tenor_months|default:"-" }}</td>
+                    <td>{{ limit.proposed_limit_amount }}</td>
+                    <td>{{ limit.proposed_tenor_months }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No limits defined</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Revenue Information -->
+<div class="mt-3">
+    <h4>Revenue</h4>
+    <div class="row">
+        <div class="col-md-4">
+            <p><strong>Revenue (Last 12M):</strong> ${{ credit_request.revenue_last_12m|default:"0" }}m</p>
+        </div>
+        <div class="col-md-4">
+            <p><strong>Projected Revenue:</strong> ${{ credit_request.projected_revenue|default:"0" }}m</p>
+        </div>
+        <div class="col-md-4">
+            <p><strong>Projected RoRWA:</strong> {{ credit_request.projected_rorwa_percentage|default:"0" }}%</p>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Information -->
+<div class="mt-3">
+    <h4>Additional Information</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Client Introduction:</strong> {{ credit_request.client_introduction_details|default:"Not provided" }}</p>
+            <p><strong>KYC Status:</strong> {{ credit_request.kyc_approval_status|default:"Not provided" }}</p>
+            <p><strong>Senior Client Contact:</strong> {{ credit_request.senior_client_contact|default:"Not provided" }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Last Client Visit:</strong> 
+                {% if credit_request.last_client_visit_date %}
+                {{ credit_request.last_client_visit_date|date:"F d, Y" }}
+                {% else %}
+                Not provided
+                {% endif %}
+            </p>
+            <p><strong>Legal Opinion:</strong> 
+                {% if credit_request.has_legal_opinion %}
+                <span class="badge bg-success">Yes</span>
+                {% else %}
+                <span class="badge bg-secondary">No</span>
+                {% endif %}
+            </p>
+            <p><strong>Financial Statements:</strong> 
+                {% if credit_request.financial_statements_received %}
+                <span class="badge bg-success">Received</span>
+                {% else %}
+                <span class="badge bg-secondary">Not Received</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    {% if credit_request.interim_financials_info %}
+    <div class="mt-3">
+        <h5>Interim Financials</h5>
+        <p>{{ credit_request.interim_financials_info }}</p>
+    </div>
+    {% endif %}
+</div>

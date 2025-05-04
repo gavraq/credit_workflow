@@ -164,10 +164,31 @@ class LegalReviewForm(BaseForm):
         fields = [
             'credit_request',
             'reviewer',
+            # Master Agreement fields
+            'isda_master_agreement',
+            'governing_law',
+            'counterparty_termination_events',
+            'counterparty_default_events',
+            'grace_period',
+            'material_provisions',
+            'positive_netting_opinion',
+            # Credit Support Annex fields
+            'credit_support_annex',
+            'csa_type',
+            'iosco_compliant',
+            'csa_threshold',
+            'csa_minimum_transfer',
+            'csa_independent_amount',
+            'positive_collateral_opinion',
+            'csa_additional_provisions',
+            # Original fields
             'comments',
             'is_draft',
         ]
         widgets = {
+            'counterparty_termination_events': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter counterparty termination events...'}),
+            'material_provisions': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter material non-standard provisions...'}),
+            'csa_additional_provisions': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter additional CSA provisions...'}),
             'comments': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter legal review comments...'}),
         }
 
